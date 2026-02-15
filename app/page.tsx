@@ -54,6 +54,7 @@ export default function Home() {
               <a href="#how-it-works" className="text-gray-700 hover:text-curb-orange transition">How It Works</a>
               <a href="#buyers" className="text-gray-700 hover:text-curb-orange transition">For Buyers</a>
               <a href="#dealers" className="text-gray-700 hover:text-curb-orange transition">For Dealers</a>
+              <a href="/roadmap" className="text-gray-700 hover:text-curb-orange transition">Roadmap</a>
               <a href="#faq" className="text-gray-700 hover:text-curb-orange transition">FAQ</a>
             </div>
             <button
