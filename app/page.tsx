@@ -68,13 +68,13 @@ export default function Home() {
       </nav>
 
       {/* Hero Section */}
-      <section className="pt-32 pb-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-white to-gray-50">
+      <section className="pt-32 pb-24 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-white via-gray-50 to-white">
         <div className="max-w-7xl mx-auto">
           <div className="text-center">
-            <h1 className="text-5xl md:text-6xl font-bold text-curb-navy mb-6">
+            <h1 className="text-5xl md:text-7xl font-bold text-curb-navy mb-8 leading-tight">
               Buy & Sell Used Cars<br />With Confidence
             </h1>
-            <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
+            <p className="text-xl md:text-2xl text-gray-600 mb-10 max-w-3xl mx-auto leading-relaxed">
               Access wholesale pricing through transparent 3-day auctions with dealer inspection guarantees.
               Skip the markup, know exactly what you're buying.
             </p>
@@ -94,22 +94,22 @@ export default function Home() {
             </div>
 
             {/* Trust Signals */}
-            <div className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-8 max-w-4xl mx-auto">
-              <div className="text-center">
-                <div className="text-3xl font-bold text-curb-orange">3 Days</div>
-                <div className="text-gray-600 mt-1">Auction Window</div>
+            <div className="mt-20 grid grid-cols-2 md:grid-cols-4 gap-6 max-w-5xl mx-auto">
+              <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+                <div className="text-4xl font-bold text-curb-orange mb-2">3 Days</div>
+                <div className="text-gray-600 text-sm font-medium">Auction Window</div>
               </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold text-curb-orange">100%</div>
-                <div className="text-gray-600 mt-1">Escrow Protected</div>
+              <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+                <div className="text-4xl font-bold text-curb-orange mb-2">100%</div>
+                <div className="text-gray-600 text-sm font-medium">Escrow Protected</div>
               </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold text-curb-orange">$0</div>
-                <div className="text-gray-600 mt-1">Hidden Fees</div>
+              <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+                <div className="text-4xl font-bold text-curb-orange mb-2">$0</div>
+                <div className="text-gray-600 text-sm font-medium">Hidden Fees</div>
               </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold text-curb-orange">Certified</div>
-                <div className="text-gray-600 mt-1">Dealer Inspections</div>
+              <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+                <div className="text-4xl font-bold text-curb-orange mb-2">Certified</div>
+                <div className="text-gray-600 text-sm font-medium">Dealer Inspections</div>
               </div>
             </div>
           </div>
@@ -154,57 +154,54 @@ export default function Home() {
           <div className="grid md:grid-cols-3 gap-8 mb-16">
             {[
               {
-                icon: '💰',
                 title: 'Wholesale Pricing',
                 desc: 'Save thousands by buying directly from dealers at wholesale prices without retail markup'
               },
               {
-                icon: '🔍',
                 title: 'Transparent Inspections',
                 desc: 'Complete condition reports and pre-sale inspections reveal exactly what you\'re buying'
               },
               {
-                icon: '🔧',
                 title: 'Repairs Included',
                 desc: 'Certified dealers complete repairs before delivery—no surprise costs or "as-is" sales'
               },
               {
-                icon: '🛡️',
                 title: 'Escrow Protection',
                 desc: 'Secure payment through Escrow.com ensures buyer protection throughout the process'
               },
               {
-                icon: '📋',
                 title: 'No Surprises',
                 desc: 'Review and approve all repairs before taking delivery with complete transparency'
               },
               {
-                icon: '⭐',
                 title: 'Dealer Ratings',
                 desc: 'Verified reviews and ratings help you buy from trusted, professional dealers'
               },
             ].map((benefit) => (
-              <div key={benefit.title} className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition">
-                <div className="text-4xl mb-4">{benefit.icon}</div>
-                <h3 className="text-xl font-semibold text-curb-navy mb-2">{benefit.title}</h3>
-                <p className="text-gray-600">{benefit.desc}</p>
+              <div key={benefit.title} className="bg-white p-8 rounded-xl shadow-sm hover:shadow-md transition border border-gray-100">
+                <div className="w-12 h-12 bg-curb-orange/10 rounded-lg flex items-center justify-center mb-4">
+                  <div className="w-6 h-6 bg-curb-orange rounded"></div>
+                </div>
+                <h3 className="text-xl font-semibold text-curb-navy mb-3">{benefit.title}</h3>
+                <p className="text-gray-600 leading-relaxed">{benefit.desc}</p>
               </div>
             ))}
           </div>
 
           {/* Price Comparison */}
-          <div className="bg-white rounded-xl shadow-lg p-8">
-            <h3 className="text-3xl font-bold text-curb-navy text-center mb-12">Price Comparison</h3>
-            <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-              <div className="text-center p-10 border-2 border-gray-200 rounded-xl">
-                <div className="text-gray-500 font-semibold mb-3 text-lg">Retail Dealer</div>
-                <div className="text-5xl font-bold text-gray-700 mb-3">$18,500</div>
-                <div className="text-gray-500">High markup + fees</div>
+          <div className="bg-white rounded-xl shadow-lg p-10 border border-gray-100">
+            <h3 className="text-3xl font-bold text-curb-navy text-center mb-14">Price Comparison</h3>
+            <div className="grid md:grid-cols-2 gap-10 max-w-4xl mx-auto">
+              <div className="text-center p-10 border-2 border-gray-200 rounded-xl bg-gray-50">
+                <div className="text-gray-500 font-semibold mb-4 text-sm uppercase tracking-wide">Traditional Retail</div>
+                <div className="text-5xl font-bold text-gray-700 mb-4">$18,500</div>
+                <div className="text-gray-600 text-sm">High markup + dealer fees</div>
               </div>
-              <div className="text-center p-10 border-4 border-curb-orange rounded-xl bg-gradient-to-br from-orange-50 to-orange-100 shadow-lg transform hover:scale-105 transition">
-                <div className="text-curb-orange font-bold mb-3 text-xl">CURB</div>
-                <div className="text-6xl font-bold text-curb-orange mb-3">$14,000</div>
-                <div className="text-lg text-green-600 font-bold">Save $4,500!</div>
+              <div className="text-center p-10 border-2 border-curb-orange rounded-xl bg-gradient-to-br from-orange-50 to-white relative overflow-hidden">
+                <div className="absolute top-0 right-0 bg-green-500 text-white text-xs font-bold px-4 py-1 rounded-bl-lg">BEST VALUE</div>
+                <div className="text-curb-orange font-bold mb-4 text-sm uppercase tracking-wide">Curb Platform</div>
+                <div className="text-6xl font-bold text-curb-orange mb-4">$14,000</div>
+                <div className="inline-block bg-green-500 text-white px-4 py-2 rounded-lg text-sm font-bold">Save $4,500</div>
               </div>
             </div>
           </div>
@@ -239,8 +236,12 @@ export default function Home() {
                 'Transparent pricing with predictable revenue per transaction',
               ].map((item) => (
                 <li key={item} className="flex items-start">
-                  <span className="text-curb-orange mr-3 text-xl">✓</span>
-                  <span className="text-gray-200">{item}</span>
+                  <div className="flex-shrink-0 w-6 h-6 bg-curb-orange rounded-full flex items-center justify-center mr-3 mt-0.5">
+                    <svg className="w-4 h-4 text-white" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
+                      <path d="M5 13l4 4L19 7"></path>
+                    </svg>
+                  </div>
+                  <span className="text-gray-200 flex-1">{item}</span>
                 </li>
               ))}
             </ul>

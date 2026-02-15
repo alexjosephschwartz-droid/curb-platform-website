@@ -205,26 +205,29 @@ export default function BrowsePage() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-curb-navy mb-2">Browse Auctions</h1>
-          <p className="text-gray-600">Find your next vehicle from our transparent wholesale auctions</p>
+        <div className="mb-10">
+          <h1 className="text-4xl md:text-5xl font-bold text-curb-navy mb-3">Browse Auctions</h1>
+          <p className="text-lg text-gray-600">Find your next vehicle from our transparent wholesale auctions</p>
         </div>
 
         {/* Search Bar */}
-        <div className="bg-white rounded-xl shadow-sm p-4 mb-6">
+        <div className="bg-white rounded-xl shadow-sm p-5 mb-8 border border-gray-100">
           <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1">
+            <div className="flex-1 relative">
+              <svg className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
+                <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+              </svg>
               <input
                 type="text"
                 placeholder="Search by make, model, or year..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-curb-orange"
+                className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-curb-orange focus:border-transparent"
               />
             </div>
             <button
               onClick={() => setShowFilters(!showFilters)}
-              className="px-6 py-3 bg-curb-navy text-white rounded-lg hover:bg-slate-800 transition font-medium"
+              className="px-8 py-3 bg-curb-navy text-white rounded-lg hover:bg-slate-800 transition font-medium"
             >
               {showFilters ? 'Hide Filters' : 'Show Filters'}
             </button>
@@ -233,8 +236,8 @@ export default function BrowsePage() {
 
         {/* Filters Panel */}
         {showFilters && (
-          <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
-            <h3 className="text-lg font-semibold text-curb-navy mb-4">Filters</h3>
+          <div className="bg-white rounded-xl shadow-sm p-6 mb-8 border border-gray-100">
+            <h3 className="text-lg font-bold text-curb-navy mb-6">Filter Results</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Make</label>
@@ -373,12 +376,12 @@ export default function BrowsePage() {
         </div>
 
         {/* Vehicle Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {sortedVehicles.map((vehicle) => (
             <Link
               key={vehicle.id}
               href={`/vehicle/${vehicle.id}`}
-              className="bg-white rounded-xl shadow-sm hover:shadow-md transition overflow-hidden group"
+              className="bg-white rounded-xl shadow-sm hover:shadow-lg transition overflow-hidden group border border-gray-100 hover:border-curb-orange/30"
             >
               {/* Image */}
               <div className="relative h-48 bg-gray-200 overflow-hidden">

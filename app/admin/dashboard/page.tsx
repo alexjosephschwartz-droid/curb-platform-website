@@ -93,55 +93,55 @@ export default function AdminDashboard() {
 
         {/* KPI Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-xl shadow-sm p-6">
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-sm text-gray-500">GMV (Gross Merchandise Value)</p>
-              <span className="text-green-600 text-sm font-semibold">↑ {kpis.gmvGrowth}%</span>
+          <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-xs uppercase tracking-wider text-gray-500 font-semibold">GMV</p>
+              <span className="bg-green-100 text-green-700 text-xs font-bold px-2 py-1 rounded">+{kpis.gmvGrowth}%</span>
             </div>
             <p className="text-3xl font-bold text-curb-navy mb-1">${(kpis.gmv / 1000).toFixed(0)}K</p>
-            <p className="text-xs text-gray-500">Total vehicle sales</p>
+            <p className="text-xs text-gray-500">Gross Merchandise Value</p>
           </div>
 
-          <div className="bg-white rounded-xl shadow-sm p-6">
-            <p className="text-sm text-gray-500 mb-2">Platform Take Rate</p>
+          <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+            <p className="text-xs uppercase tracking-wider text-gray-500 font-semibold mb-3">Take Rate</p>
             <p className="text-3xl font-bold text-curb-orange mb-1">{kpis.takeRate}%</p>
-            <p className="text-xs text-gray-500">Revenue / GMV</p>
+            <p className="text-xs text-gray-500">Platform revenue rate</p>
           </div>
 
-          <div className="bg-white rounded-xl shadow-sm p-6">
-            <p className="text-sm text-gray-500 mb-2">Active Buyers</p>
+          <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+            <p className="text-xs uppercase tracking-wider text-gray-500 font-semibold mb-3">Active Buyers</p>
             <p className="text-3xl font-bold text-curb-navy mb-1">{kpis.activeBuyers}</p>
             <p className="text-xs text-gray-500">Last 30 days</p>
           </div>
 
-          <div className="bg-white rounded-xl shadow-sm p-6">
-            <p className="text-sm text-gray-500 mb-2">Active Dealers</p>
+          <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+            <p className="text-xs uppercase tracking-wider text-gray-500 font-semibold mb-3">Active Dealers</p>
             <p className="text-3xl font-bold text-curb-navy mb-1">{kpis.activeDealers}</p>
             <p className="text-xs text-gray-500">Approved & listing</p>
           </div>
 
-          <div className="bg-white rounded-xl shadow-sm p-6">
-            <p className="text-sm text-gray-500 mb-2">Active Auctions</p>
+          <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+            <p className="text-xs uppercase tracking-wider text-gray-500 font-semibold mb-3">Live Auctions</p>
             <p className="text-3xl font-bold text-curb-orange mb-1">{kpis.activeAuctions}</p>
-            <p className="text-xs text-gray-500">Live right now</p>
+            <p className="text-xs text-gray-500">Active right now</p>
           </div>
 
-          <div className="bg-white rounded-xl shadow-sm p-6">
-            <p className="text-sm text-gray-500 mb-2">Conversion Rate</p>
+          <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+            <p className="text-xs uppercase tracking-wider text-gray-500 font-semibold mb-3">Conversion</p>
             <p className="text-3xl font-bold text-green-600 mb-1">{kpis.conversionRate}%</p>
-            <p className="text-xs text-gray-500">Listings → Sales</p>
+            <p className="text-xs text-gray-500">Listings to sales</p>
           </div>
 
-          <div className="bg-white rounded-xl shadow-sm p-6">
-            <p className="text-sm text-gray-500 mb-2">Avg Sale Price</p>
+          <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+            <p className="text-xs uppercase tracking-wider text-gray-500 font-semibold mb-3">Avg Sale Price</p>
             <p className="text-3xl font-bold text-curb-navy mb-1">${kpis.avgSalePrice.toLocaleString()}</p>
             <p className="text-xs text-gray-500">All categories</p>
           </div>
 
-          <div className="bg-white rounded-xl shadow-sm p-6">
-            <p className="text-sm text-gray-500 mb-2">Revenue (30d)</p>
+          <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+            <p className="text-xs uppercase tracking-wider text-gray-500 font-semibold mb-3">Revenue (30d)</p>
             <p className="text-3xl font-bold text-green-600 mb-1">${Math.round(kpis.gmv * (kpis.takeRate / 100) / 1000)}K</p>
-            <p className="text-xs text-gray-500">Fees + premiums</p>
+            <p className="text-xs text-gray-500">Total platform fees</p>
           </div>
         </div>
 
@@ -237,7 +237,14 @@ export default function AdminDashboard() {
               {flaggedAuctions.map((auction) => (
                 <div key={auction.id} className="border border-gray-200 rounded-lg p-4 hover:border-curb-orange transition">
                   <h3 className="font-semibold text-curb-navy mb-1">{auction.vehicle}</h3>
-                  <p className="text-sm text-red-600 mb-2">⚠️ {auction.reason}</p>
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-5 h-5 bg-red-100 rounded flex items-center justify-center flex-shrink-0">
+                      <svg className="w-3 h-3 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                    <p className="text-sm text-red-600 font-medium">{auction.reason}</p>
+                  </div>
                   <div className="flex items-center justify-between text-xs mb-3">
                     <span className="text-gray-600">{auction.bidCount} bids</span>
                     <span className="font-semibold text-curb-orange">${auction.currentBid.toLocaleString()}</span>

@@ -111,10 +111,10 @@ export default function DealerDashboard() {
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {stats.map((stat) => (
-            <div key={stat.label} className="bg-white rounded-xl shadow-sm p-6">
-              <p className="text-sm text-gray-500 mb-1">{stat.label}</p>
-              <p className="text-3xl font-bold text-curb-navy mb-1">{stat.value}</p>
-              <p className="text-sm text-gray-600">{stat.change}</p>
+            <div key={stat.label} className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 hover:border-curb-orange/30 transition">
+              <p className="text-xs uppercase tracking-wider text-gray-500 font-semibold mb-2">{stat.label}</p>
+              <p className="text-3xl font-bold text-curb-navy mb-2">{stat.value}</p>
+              <p className="text-xs text-gray-600">{stat.change}</p>
             </div>
           ))}
         </div>
@@ -137,24 +137,36 @@ export default function DealerDashboard() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <Link
             href="/dealer/list-vehicle"
-            className="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition group"
+            className="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition group border border-gray-100"
           >
-            <div className="text-4xl mb-3">🚗</div>
-            <h3 className="text-lg font-semibold text-curb-navy mb-1 group-hover:text-curb-orange">
+            <div className="w-12 h-12 bg-curb-orange/10 rounded-lg flex items-center justify-center mb-4 group-hover:bg-curb-orange/20 transition">
+              <svg className="w-6 h-6 text-curb-orange" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
+                <path d="M12 4v16m8-8H4"></path>
+              </svg>
+            </div>
+            <h3 className="text-lg font-semibold text-curb-navy mb-2 group-hover:text-curb-orange transition">
               List New Vehicle
             </h3>
             <p className="text-gray-600 text-sm">Start a new 3-day auction</p>
           </Link>
-          <button className="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition group text-left">
-            <div className="text-4xl mb-3">📊</div>
-            <h3 className="text-lg font-semibold text-curb-navy mb-1 group-hover:text-curb-orange">
+          <button className="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition group text-left border border-gray-100">
+            <div className="w-12 h-12 bg-blue-50 rounded-lg flex items-center justify-center mb-4 group-hover:bg-blue-100 transition">
+              <svg className="w-6 h-6 text-blue-600" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
+                <path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+              </svg>
+            </div>
+            <h3 className="text-lg font-semibold text-curb-navy mb-2 group-hover:text-blue-600 transition">
               View Analytics
             </h3>
             <p className="text-gray-600 text-sm">Performance trends & insights</p>
           </button>
-          <button className="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition group text-left">
-            <div className="text-4xl mb-3">💬</div>
-            <h3 className="text-lg font-semibold text-curb-navy mb-1 group-hover:text-curb-orange">
+          <button className="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition group text-left border border-gray-100">
+            <div className="w-12 h-12 bg-green-50 rounded-lg flex items-center justify-center mb-4 group-hover:bg-green-100 transition">
+              <svg className="w-6 h-6 text-green-600" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
+                <path d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path>
+              </svg>
+            </div>
+            <h3 className="text-lg font-semibold text-curb-navy mb-2 group-hover:text-green-600 transition">
               Messages
             </h3>
             <p className="text-gray-600 text-sm">2 new buyer questions</p>

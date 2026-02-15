@@ -9,7 +9,6 @@ export default function RoadmapPage() {
   const phase2Features = [
     {
       id: 1,
-      icon: '🏆',
       title: 'Curb Certified Badge',
       status: 'Phase 2',
       priority: 'High',
@@ -26,7 +25,6 @@ export default function RoadmapPage() {
     },
     {
       id: 2,
-      icon: '🚚',
       title: 'Delivery & Transport Logistics',
       status: 'Phase 2',
       priority: 'High',
@@ -43,7 +41,6 @@ export default function RoadmapPage() {
     },
     {
       id: 3,
-      icon: '🏢',
       title: 'Enterprise Dealer Portal',
       status: 'Phase 2',
       priority: 'Medium',
@@ -60,7 +57,6 @@ export default function RoadmapPage() {
     },
     {
       id: 4,
-      icon: '📱',
       title: 'Mobile Apps (iOS & Android)',
       status: 'Phase 2',
       priority: 'High',
@@ -80,7 +76,6 @@ export default function RoadmapPage() {
   const phase3Features = [
     {
       id: 5,
-      icon: '💳',
       title: 'Financing Marketplace',
       status: 'Phase 3',
       priority: 'High',
@@ -97,7 +92,6 @@ export default function RoadmapPage() {
     },
     {
       id: 6,
-      icon: '🛡️',
       title: 'Extended Warranty Products',
       status: 'Phase 3',
       priority: 'Medium',
@@ -114,7 +108,6 @@ export default function RoadmapPage() {
     },
     {
       id: 7,
-      icon: '🚗',
       title: 'Curb Direct (Buy/Resell)',
       status: 'Phase 3',
       priority: 'High',
@@ -155,12 +148,11 @@ export default function RoadmapPage() {
       </header>
 
       {/* Hero Section */}
-      <div className="bg-gradient-to-br from-curb-navy via-slate-800 to-curb-navy text-white py-20">
+      <div className="bg-gradient-to-br from-curb-navy via-slate-800 to-curb-navy text-white py-24">
         <div className="container mx-auto px-4 text-center">
-          <h1 className="text-5xl font-bold mb-6">Product Roadmap</h1>
-          <p className="text-xl text-gray-300 max-w-3xl mx-auto">
-            Our vision for the future of transparent car buying. Innovative features coming in
-            Phase 2 and Phase 3 to deliver even more value to buyers and dealers.
+          <h1 className="text-5xl md:text-6xl font-bold mb-8">Product Roadmap</h1>
+          <p className="text-xl md:text-2xl text-gray-300 max-w-3xl mx-auto leading-relaxed">
+            Our strategic vision for revolutionizing the used car marketplace. Planned features designed to maximize value for buyers and dealers.
           </p>
         </div>
       </div>
@@ -168,50 +160,69 @@ export default function RoadmapPage() {
       <div className="container mx-auto px-4 py-12 max-w-7xl">
         {/* Current Platform Status */}
         <div className="bg-gradient-to-r from-green-50 to-green-100 border-2 border-green-300 rounded-2xl p-8 mb-12">
-          <div className="flex items-center gap-4 mb-4">
-            <div className="text-5xl">✅</div>
+          <div className="flex items-start gap-5 mb-6">
+            <div className="w-16 h-16 bg-green-600 rounded-lg flex items-center justify-center flex-shrink-0">
+              <svg className="w-10 h-10 text-white" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
+                <path d="M5 13l4 4L19 7"></path>
+              </svg>
+            </div>
             <div>
-              <h2 className="text-2xl font-bold text-green-800">Phase 1: LIVE NOW</h2>
-              <p className="text-green-700">Core platform features are deployed and operational</p>
+              <h2 className="text-2xl font-bold text-green-800 mb-1">Phase 1: LIVE NOW</h2>
+              <p className="text-green-700 text-lg">Core platform features are deployed and operational</p>
             </div>
           </div>
-          <div className="grid md:grid-cols-3 gap-4 mt-6">
-            <div className="bg-white rounded-lg p-4 border border-green-200">
-              <p className="font-semibold text-green-800">✓ Buyer Marketplace</p>
+          <div className="grid md:grid-cols-3 gap-4">
+            <div className="bg-white rounded-lg p-5 border border-green-200">
+              <div className="flex items-center gap-2 mb-2">
+                <svg className="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                </svg>
+                <p className="font-semibold text-green-800">Buyer Marketplace</p>
+              </div>
               <p className="text-sm text-gray-600">Browse, bid, and purchase vehicles</p>
             </div>
-            <div className="bg-white rounded-lg p-4 border border-green-200">
-              <p className="font-semibold text-green-800">✓ Dealer Dashboard</p>
+            <div className="bg-white rounded-lg p-5 border border-green-200">
+              <div className="flex items-center gap-2 mb-2">
+                <svg className="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                </svg>
+                <p className="font-semibold text-green-800">Dealer Dashboard</p>
+              </div>
               <p className="text-sm text-gray-600">List vehicles and manage auctions</p>
             </div>
-            <div className="bg-white rounded-lg p-4 border border-green-200">
-              <p className="font-semibold text-green-800">✓ AI Automation</p>
+            <div className="bg-white rounded-lg p-5 border border-green-200">
+              <div className="flex items-center gap-2 mb-2">
+                <svg className="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                </svg>
+                <p className="font-semibold text-green-800">AI Automation</p>
+              </div>
               <p className="text-sm text-gray-600">Smart pricing, fraud detection, chatbot</p>
             </div>
           </div>
         </div>
 
         {/* Phase Toggle */}
-        <div className="flex gap-4 mb-8 justify-center">
+        <div className="flex gap-4 mb-10 justify-center">
           <button
             onClick={() => setSelectedPhase('phase2')}
-            className={`px-8 py-4 rounded-xl font-bold text-lg transition ${
+            className={`px-10 py-4 rounded-xl font-bold text-lg transition ${
               selectedPhase === 'phase2'
-                ? 'bg-curb-orange text-white shadow-lg scale-105'
+                ? 'bg-curb-orange text-white shadow-lg border-2 border-curb-orange'
                 : 'bg-white text-gray-700 border-2 border-gray-300 hover:border-curb-orange'
             }`}
           >
-            📅 Phase 2 (2025 Q3-Q4)
+            Phase 2 (2025 Q3-Q4)
           </button>
           <button
             onClick={() => setSelectedPhase('phase3')}
-            className={`px-8 py-4 rounded-xl font-bold text-lg transition ${
+            className={`px-10 py-4 rounded-xl font-bold text-lg transition ${
               selectedPhase === 'phase3'
-                ? 'bg-curb-orange text-white shadow-lg scale-105'
+                ? 'bg-curb-orange text-white shadow-lg border-2 border-curb-orange'
                 : 'bg-white text-gray-700 border-2 border-gray-300 hover:border-curb-orange'
             }`}
           >
-            🚀 Phase 3 (2026)
+            Phase 3 (2026+)
           </button>
         </div>
 
@@ -224,10 +235,12 @@ export default function RoadmapPage() {
             >
               {/* Header */}
               <div className="flex items-start justify-between mb-6">
-                <div className="flex items-center gap-4">
-                  <div className="text-6xl">{feature.icon}</div>
-                  <div>
-                    <h3 className="text-2xl font-bold text-curb-navy mb-1">{feature.title}</h3>
+                <div className="flex items-start gap-4">
+                  <div className="w-14 h-14 bg-curb-orange/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <div className="w-7 h-7 bg-curb-orange rounded"></div>
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-2xl font-bold text-curb-navy mb-2">{feature.title}</h3>
                     <div className="flex gap-2">
                       <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-semibold">
                         {feature.status}
@@ -251,12 +264,16 @@ export default function RoadmapPage() {
 
               {/* Features List */}
               <div className="mb-6">
-                <h4 className="font-semibold text-curb-navy mb-3">Key Features:</h4>
-                <ul className="space-y-2">
+                <h4 className="font-semibold text-curb-navy mb-4 text-sm uppercase tracking-wider">Key Capabilities</h4>
+                <ul className="space-y-3">
                   {feature.features.map((item, index) => (
-                    <li key={index} className="flex items-start gap-2">
-                      <span className="text-green-600 mt-1">✓</span>
-                      <span className="text-gray-700">{item}</span>
+                    <li key={index} className="flex items-start gap-3">
+                      <div className="flex-shrink-0 w-5 h-5 bg-green-100 rounded-full flex items-center justify-center mt-0.5">
+                        <svg className="w-3 h-3 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                      </div>
+                      <span className="text-gray-700 flex-1">{item}</span>
                     </li>
                   ))}
                 </ul>
@@ -272,8 +289,8 @@ export default function RoadmapPage() {
         </div>
 
         {/* Timeline Visualization */}
-        <div className="mt-16 bg-white rounded-2xl shadow-lg p-8">
-          <h2 className="text-3xl font-bold text-curb-navy mb-8 text-center">Development Timeline</h2>
+        <div className="mt-16 bg-white rounded-2xl shadow-lg p-10 border border-gray-100">
+          <h2 className="text-3xl font-bold text-curb-navy mb-12 text-center">Development Timeline</h2>
 
           <div className="relative">
             {/* Timeline Line */}
@@ -282,27 +299,31 @@ export default function RoadmapPage() {
             {/* Phase 1 */}
             <div className="relative flex items-center mb-12">
               <div className="flex-1 text-right pr-8">
-                <div className="bg-green-100 inline-block px-6 py-3 rounded-lg">
-                  <h3 className="font-bold text-green-800 text-xl">Phase 1 - Core Platform</h3>
-                  <p className="text-green-700 text-sm">2025 Q1-Q2 ✅ Complete</p>
+                <div className="bg-green-100 inline-block px-6 py-4 rounded-lg border border-green-200">
+                  <h3 className="font-bold text-green-800 text-xl mb-1">Phase 1 - Core Platform</h3>
+                  <p className="text-green-700 text-sm font-medium">2025 Q1-Q2 • Complete</p>
                 </div>
               </div>
-              <div className="w-8 h-8 bg-green-500 rounded-full border-4 border-white shadow-lg z-10"></div>
+              <div className="w-10 h-10 bg-green-500 rounded-full border-4 border-white shadow-lg z-10 flex items-center justify-center">
+                <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                </svg>
+              </div>
               <div className="flex-1 pl-8">
-                <p className="text-gray-600">Marketplace, Auctions, AI Tools</p>
+                <p className="text-gray-600 font-medium">Marketplace, Auctions, AI Tools</p>
               </div>
             </div>
 
             {/* Phase 2 */}
             <div className="relative flex items-center mb-12">
               <div className="flex-1 text-right pr-8">
-                <p className="text-gray-600">Mobile Apps, Enterprise Tools, Delivery</p>
+                <p className="text-gray-600 font-medium">Mobile Apps, Enterprise Tools, Delivery</p>
               </div>
-              <div className="w-8 h-8 bg-curb-orange rounded-full border-4 border-white shadow-lg z-10"></div>
+              <div className="w-10 h-10 bg-curb-orange rounded-full border-4 border-white shadow-lg z-10"></div>
               <div className="flex-1 pl-8">
-                <div className="bg-orange-100 inline-block px-6 py-3 rounded-lg">
-                  <h3 className="font-bold text-curb-orange text-xl">Phase 2 - Growth Features</h3>
-                  <p className="text-orange-700 text-sm">2025 Q3-Q4 🚧 Planned</p>
+                <div className="bg-orange-100 inline-block px-6 py-4 rounded-lg border border-orange-200">
+                  <h3 className="font-bold text-curb-orange text-xl mb-1">Phase 2 - Growth Features</h3>
+                  <p className="text-orange-700 text-sm font-medium">2025 Q3-Q4 • Planned</p>
                 </div>
               </div>
             </div>
@@ -310,24 +331,24 @@ export default function RoadmapPage() {
             {/* Phase 3 */}
             <div className="relative flex items-center">
               <div className="flex-1 text-right pr-8">
-                <div className="bg-blue-100 inline-block px-6 py-3 rounded-lg">
-                  <h3 className="font-bold text-blue-800 text-xl">Phase 3 - Advanced Services</h3>
-                  <p className="text-blue-700 text-sm">2026+ 🔮 Future</p>
+                <div className="bg-blue-100 inline-block px-6 py-4 rounded-lg border border-blue-200">
+                  <h3 className="font-bold text-blue-800 text-xl mb-1">Phase 3 - Advanced Services</h3>
+                  <p className="text-blue-700 text-sm font-medium">2026+ • Strategic</p>
                 </div>
               </div>
-              <div className="w-8 h-8 bg-blue-500 rounded-full border-4 border-white shadow-lg z-10"></div>
+              <div className="w-10 h-10 bg-blue-500 rounded-full border-4 border-white shadow-lg z-10"></div>
               <div className="flex-1 pl-8">
-                <p className="text-gray-600">Financing, Warranties, Curb Direct</p>
+                <p className="text-gray-600 font-medium">Financing, Warranties, Curb Direct</p>
               </div>
             </div>
           </div>
         </div>
 
         {/* CTA Section */}
-        <div className="mt-16 bg-gradient-to-r from-curb-orange to-orange-600 rounded-2xl p-12 text-center text-white">
-          <h2 className="text-4xl font-bold mb-4">Want Early Access?</h2>
-          <p className="text-xl mb-8 opacity-90">
-            Join our waitlist to be the first to try new features as they launch
+        <div className="mt-16 bg-gradient-to-r from-curb-orange to-orange-600 rounded-2xl p-14 text-center text-white shadow-xl">
+          <h2 className="text-4xl md:text-5xl font-bold mb-5">Want Early Access?</h2>
+          <p className="text-xl md:text-2xl mb-10 opacity-90 max-w-2xl mx-auto">
+            Join our waitlist to be the first to experience new features as they launch
           </p>
           <div className="flex gap-4 justify-center">
             <Link
