@@ -200,7 +200,7 @@ export default function Home() {
                 {/* Left: Car Image */}
                 <div className="bg-gray-100 h-80 relative overflow-hidden">
                   <img
-                    src="https://images.unsplash.com/photo-1617814076367-b759c7d7e738?w=800&auto=format&fit=crop&q=80"
+                    src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/02/2019_BMW_330i_M_Sport_Automatic_2.0_Front.jpg/1200px-2019_BMW_330i_M_Sport_Automatic_2.0_Front.jpg"
                     alt="2019 BMW 330i"
                     className="w-full h-full object-cover"
                   />
