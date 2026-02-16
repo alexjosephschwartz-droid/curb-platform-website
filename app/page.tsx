@@ -197,11 +197,13 @@ export default function Home() {
 
             <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
               <div className="grid md:grid-cols-2">
-                {/* Left: Car Image Placeholder */}
-                <div className="bg-gray-100 h-80 flex items-center justify-center">
-                  <svg className="w-32 h-32 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 9l-7 7-7-7" />
-                  </svg>
+                {/* Left: Car Image */}
+                <div className="bg-gray-100 h-80 relative overflow-hidden">
+                  <img
+                    src="https://images.unsplash.com/photo-1555215695-3004980ad54e?w=800&auto=format&fit=crop&q=80"
+                    alt="2019 BMW 330i"
+                    className="w-full h-full object-cover"
+                  />
                 </div>
 
                 {/* Right: Car Details */}
@@ -239,24 +241,6 @@ export default function Home() {
                     </div>
                   </div>
                 </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Price Comparison */}
-          <div className="bg-white rounded-xl shadow-lg p-10 border border-gray-100">
-            <h3 className="text-3xl font-bold text-curb-navy text-center mb-14">Price Comparison</h3>
-            <div className="grid md:grid-cols-2 gap-10 max-w-4xl mx-auto">
-              <div className="text-center p-10 border-2 border-gray-200 rounded-xl bg-gray-50">
-                <div className="text-gray-500 font-semibold mb-4 text-sm uppercase tracking-wide">Traditional Retail</div>
-                <div className="text-5xl font-bold text-gray-700 mb-4">$18,500</div>
-                <div className="text-gray-600 text-sm">High markup + dealer fees</div>
-              </div>
-              <div className="text-center p-10 border-2 border-curb-orange rounded-xl bg-gradient-to-br from-orange-50 to-white relative overflow-hidden">
-                <div className="absolute top-0 right-0 bg-green-500 text-white text-xs font-bold px-4 py-1 rounded-bl-lg">BEST VALUE</div>
-                <div className="text-curb-orange font-bold mb-4 text-sm uppercase tracking-wide">Curb Platform</div>
-                <div className="text-6xl font-bold text-curb-orange mb-4">$14,000</div>
-                <div className="inline-block bg-green-500 text-white px-4 py-2 rounded-lg text-sm font-bold">Save $4,500</div>
               </div>
             </div>
           </div>
