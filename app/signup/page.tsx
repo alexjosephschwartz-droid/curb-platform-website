@@ -1,9 +1,11 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
 export default function SignupPage() {
+  const router = useRouter();
   const [step, setStep] = useState(1);
   const [userType, setUserType] = useState<'buyer' | 'dealer' | null>(null);
   const [formData, setFormData] = useState({
@@ -28,12 +30,11 @@ export default function SignupPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     // Mock signup - in production, this would call API
-    console.log('Signup:', { userType, ...formData });
 
     if (userType === 'dealer') {
-      window.location.href = '/dealer/dashboard';
+      router.push('/dealer/dashboard');
     } else {
-      window.location.href = '/browse';
+      router.push('/browse');
     }
   };
 

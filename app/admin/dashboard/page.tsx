@@ -36,40 +36,6 @@ export default function AdminDashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Navigation */}
-      <nav className="bg-curb-navy text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <Link href="/admin/dashboard" className="flex items-center gap-3">
-              <span className="text-2xl font-bold">CURB</span>
-              <span className="px-3 py-1 bg-red-500 text-white text-xs font-bold rounded-full">ADMIN</span>
-            </Link>
-            <div className="flex items-center gap-6">
-              <Link href="/admin/dashboard" className="text-white hover:text-curb-orange transition">
-                Dashboard
-              </Link>
-              <Link href="/admin/dealers" className="text-gray-300 hover:text-white transition">
-                Dealers
-              </Link>
-              <Link href="/admin/auctions" className="text-gray-300 hover:text-white transition">
-                Auctions
-              </Link>
-              <Link href="/admin/escrow" className="text-gray-300 hover:text-white transition">
-                Escrow
-              </Link>
-              <Link href="/admin/users" className="text-gray-300 hover:text-white transition">
-                Users
-              </Link>
-              <div className="flex items-center gap-3 ml-4 pl-4 border-l border-gray-600">
-                <div className="w-8 h-8 bg-curb-orange rounded-full flex items-center justify-center font-bold text-sm">
-                  A
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </nav>
-
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="flex justify-between items-center mb-8">

@@ -1,25 +1,9 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
-
-interface Vehicle {
-  id: string;
-  year: number;
-  make: string;
-  model: string;
-  trim: string;
-  mileage: number;
-  price: number;
-  kbbRetailPrice: number;
-  currentBid: number;
-  bidCount: number;
-  timeRemaining: string;
-  image: string;
-  location: string;
-  condition: 'Good' | 'Fair' | 'Rough';
-  status: 'Active' | 'Ending Soon';
-}
+import type { Vehicle } from '@/types';
 
 // Mock data - in production this would come from an API
 const mockVehicles: Vehicle[] = [
@@ -184,25 +168,6 @@ export default function BrowsePage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Navigation */}
-      <nav className="bg-white border-b border-gray-200 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <Link href="/" className="flex items-center">
-              <span className="text-2xl font-bold text-curb-navy">CURB</span>
-            </Link>
-            <div className="flex items-center gap-4">
-              <Link href="/" className="text-gray-700 hover:text-curb-orange transition">
-                Home
-              </Link>
-              <button className="bg-curb-orange text-white px-6 py-2 rounded-full hover:bg-orange-600 transition font-medium">
-                Sign In
-              </button>
-            </div>
-          </div>
-        </div>
-      </nav>
-
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-10">
@@ -385,10 +350,11 @@ export default function BrowsePage() {
             >
               {/* Image */}
               <div className="relative h-48 bg-gray-200 overflow-hidden">
-                <img
+                <Image
                   src={vehicle.image}
                   alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
-                  className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
+                  fill
+                  className="object-cover group-hover:scale-105 transition duration-300"
                 />
                 {vehicle.status === 'Ending Soon' && (
                   <div className="absolute top-3 right-3 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-semibold">

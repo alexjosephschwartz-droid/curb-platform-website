@@ -1,9 +1,11 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
 export default function LoginPage() {
+  const router = useRouter();
   const [userType, setUserType] = useState<'buyer' | 'dealer'>('buyer');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -11,13 +13,12 @@ export default function LoginPage() {
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     // Mock login - in production, this would call authentication API
-    console.log('Login attempt:', { userType, email, password });
 
     // Redirect based on user type
     if (userType === 'dealer') {
-      window.location.href = '/dealer/dashboard';
+      router.push('/dealer/dashboard');
     } else {
-      window.location.href = '/browse';
+      router.push('/browse');
     }
   };
 

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 
@@ -77,25 +78,6 @@ export default function VehicleDetailPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Navigation */}
-      <nav className="bg-white border-b border-gray-200 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <Link href="/" className="flex items-center">
-              <span className="text-2xl font-bold text-curb-navy">CURB</span>
-            </Link>
-            <div className="flex items-center gap-4">
-              <Link href="/browse" className="text-gray-700 hover:text-curb-orange transition">
-                Browse Auctions
-              </Link>
-              <button className="bg-curb-orange text-white px-6 py-2 rounded-full hover:bg-orange-600 transition font-medium">
-                Sign In
-              </button>
-            </div>
-          </div>
-        </div>
-      </nav>
-
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Back Button */}
         <Link href="/browse" className="inline-flex items-center text-curb-orange hover:text-orange-600 mb-6">
@@ -108,10 +90,11 @@ export default function VehicleDetailPage() {
             {/* Image Gallery */}
             <div className="bg-white rounded-xl shadow-sm overflow-hidden">
               <div className="relative h-96 bg-gray-200">
-                <img
+                <Image
                   src={vehicle.images[selectedImage]}
                   alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
-                  className="w-full h-full object-cover"
+                  fill
+                  className="object-cover"
                 />
               </div>
               <div className="grid grid-cols-4 gap-2 p-4">
@@ -123,7 +106,7 @@ export default function VehicleDetailPage() {
                       selectedImage === index ? 'ring-2 ring-curb-orange' : 'opacity-60 hover:opacity-100'
                     }`}
                   >
-                    <img src={image} alt={`View ${index + 1}`} className="w-full h-full object-cover" />
+                    <Image src={image} alt={`View ${index + 1}`} fill className="object-cover" />
                   </button>
                 ))}
               </div>

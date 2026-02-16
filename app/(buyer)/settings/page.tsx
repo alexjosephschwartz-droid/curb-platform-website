@@ -10,28 +10,6 @@ export default function SettingsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-curb-navy text-white py-4 shadow-lg">
-        <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between">
-            <Link href="/" className="text-2xl font-bold">
-              CURB
-            </Link>
-            <nav className="flex gap-6">
-              <Link href="/browse" className="hover:text-curb-orange transition">
-                Browse
-              </Link>
-              <Link href="/account" className="hover:text-curb-orange transition">
-                Account
-              </Link>
-              <Link href="/notifications" className="hover:text-curb-orange transition">
-                Notifications
-              </Link>
-            </nav>
-          </div>
-        </div>
-      </header>
-
       <div className="container mx-auto px-4 py-8 max-w-5xl">
         <h1 className="text-3xl font-bold text-curb-navy mb-8">Settings</h1>
 

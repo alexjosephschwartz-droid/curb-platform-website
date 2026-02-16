@@ -91,28 +91,6 @@ This ${vehicleData.make} ${vehicleData.model} is ready for its next owner and of
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-curb-navy text-white py-4 shadow-lg">
-        <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between">
-            <Link href="/" className="text-2xl font-bold">
-              CURB
-            </Link>
-            <nav className="flex gap-6">
-              <Link href="/dealer/dashboard" className="hover:text-curb-orange transition">
-                Dashboard
-              </Link>
-              <Link href="/dealer/list-vehicle" className="hover:text-curb-orange transition">
-                List Vehicle
-              </Link>
-              <Link href="/settings" className="hover:text-curb-orange transition">
-                Settings
-              </Link>
-            </nav>
-          </div>
-        </div>
-      </header>
-
       <div className="container mx-auto px-4 py-8 max-w-6xl">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-curb-navy mb-2">AI Assistant</h1>

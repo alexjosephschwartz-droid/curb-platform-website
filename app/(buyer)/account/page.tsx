@@ -59,31 +59,6 @@ export default function AccountPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-curb-navy text-white py-4 shadow-lg">
-        <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between">
-            <Link href="/" className="text-2xl font-bold">
-              CURB
-            </Link>
-            <nav className="flex gap-6">
-              <Link href="/browse" className="hover:text-curb-orange transition">
-                Browse
-              </Link>
-              <Link href="/notifications" className="hover:text-curb-orange transition relative">
-                Notifications
-                <span className="absolute -top-1 -right-1 bg-curb-orange text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
-                  3
-                </span>
-              </Link>
-              <Link href="/settings" className="hover:text-curb-orange transition">
-                Settings
-              </Link>
-            </nav>
-          </div>
-        </div>
-      </header>
-
       <div className="container mx-auto px-4 py-8">
         <div className="grid md:grid-cols-4 gap-6">
           {/* Sidebar */}
