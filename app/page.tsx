@@ -72,7 +72,7 @@ export default function Home() {
         <div className="max-w-7xl mx-auto">
           <div className="text-center">
             <h1 className="text-5xl md:text-7xl font-bold text-curb-navy mb-8 leading-tight">
-              Buy & Sell Used Cars<br />With Confidence
+              Wholesale Prices.<br />Retail Access.
             </h1>
             <p className="text-xl md:text-2xl text-gray-600 mb-10 max-w-3xl mx-auto leading-relaxed">
               Access wholesale pricing through transparent 3-day auctions with dealer inspection guarantees.
@@ -186,6 +186,61 @@ export default function Home() {
                 <p className="text-gray-600 leading-relaxed">{benefit.desc}</p>
               </div>
             ))}
+          </div>
+
+          {/* Example Listing Card */}
+          <div className="max-w-4xl mx-auto mb-16">
+            <h3 className="text-3xl font-bold text-curb-navy text-center mb-8">Skip the markup. See what's real.</h3>
+            <p className="text-lg text-gray-600 text-center mb-12 max-w-2xl mx-auto">
+              Dealers take in cars they don't want to recondition. Usually, they ship them to a wholesale auction, another dealer buys them, marks them up, and sells them to you. <strong>Curb cuts out the middleman.</strong> You see what's wrong, you decide if it's worth it, and you pay less.
+            </p>
+
+            <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+              <div className="grid md:grid-cols-2">
+                {/* Left: Car Image Placeholder */}
+                <div className="bg-gray-100 h-80 flex items-center justify-center">
+                  <svg className="w-32 h-32 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
+
+                {/* Right: Car Details */}
+                <div className="p-8">
+                  <div className="flex items-start justify-between mb-4">
+                    <div>
+                      <h4 className="text-2xl font-bold text-curb-navy mb-2">2019 BMW 330i</h4>
+                      <p className="text-gray-600">68,000 miles • Clean title • Los Angeles, CA</p>
+                    </div>
+                    <span className="px-3 py-1 bg-green-100 text-green-700 text-sm font-semibold rounded-full">
+                      Dealer Listing
+                    </span>
+                  </div>
+
+                  {/* Inspection Notes */}
+                  <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-6">
+                    <p className="font-semibold text-gray-800 mb-2">Inspection Notes:</p>
+                    <p className="text-sm text-gray-700">
+                      Needs front brake pads (~$280), minor curb rash on 2 wheels, AC blows cold
+                    </p>
+                  </div>
+
+                  {/* Pricing */}
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600">Current Bid</span>
+                      <span className="text-3xl font-bold text-curb-navy">$18,500</span>
+                    </div>
+                    <div className="flex justify-between items-center pt-3 border-t">
+                      <span className="text-gray-500 text-sm">Retail value</span>
+                      <span className="text-xl text-gray-400 line-through">$24,000</span>
+                    </div>
+                    <div className="bg-green-500 text-white rounded-lg p-3 text-center">
+                      <span className="font-bold">Save $5,500 vs. retail</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* Price Comparison */}
