@@ -31,7 +31,7 @@ export default function PhaseToggle() {
               : 'bg-white text-gray-700 border-2 border-gray-300 hover:border-curb-orange'
           }`}
         >
-          Phase 2 (2025 Q3-Q4)
+          Phase 2 (Q3–Q4 2027)
         </button>
         <button
           onClick={() => setSelectedPhase('phase3')}
@@ -41,7 +41,7 @@ export default function PhaseToggle() {
               : 'bg-white text-gray-700 border-2 border-gray-300 hover:border-curb-orange'
           }`}
         >
-          Phase 3 (2026+)
+          Phase 3 (2028+)
         </button>
       </div>
 

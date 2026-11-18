@@ -76,7 +76,7 @@ export default function RoadmapPage() {
               <div className="flex-1 text-right pr-8">
                 <div className="bg-green-100 inline-block px-6 py-4 rounded-lg border border-green-200">
                   <h3 className="font-bold text-green-800 text-xl mb-1">Phase 1 - Core Platform</h3>
-                  <p className="text-green-700 text-sm font-medium">2025 Q1-Q2 &bull; Complete</p>
+                  <p className="text-green-700 text-sm font-medium">Q1&ndash;Q2 2027 &bull; Complete</p>
                 </div>
               </div>
               <div className="w-10 h-10 bg-green-500 rounded-full border-4 border-white shadow-lg z-10 flex items-center justify-center">
@@ -96,7 +96,7 @@ export default function RoadmapPage() {
               <div className="flex-1 pl-8">
                 <div className="bg-orange-100 inline-block px-6 py-4 rounded-lg border border-orange-200">
                   <h3 className="font-bold text-curb-orange text-xl mb-1">Phase 2 - Growth Features</h3>
-                  <p className="text-orange-700 text-sm font-medium">2025 Q3-Q4 &bull; Planned</p>
+                  <p className="text-orange-700 text-sm font-medium">Q3&ndash;Q4 2027 &bull; Planned</p>
                 </div>
               </div>
             </div>
@@ -104,7 +104,7 @@ export default function RoadmapPage() {
               <div className="flex-1 text-right pr-8">
                 <div className="bg-blue-100 inline-block px-6 py-4 rounded-lg border border-blue-200">
                   <h3 className="font-bold text-blue-800 text-xl mb-1">Phase 3 - Advanced Services</h3>
-                  <p className="text-blue-700 text-sm font-medium">2026+ &bull; Strategic</p>
+                  <p className="text-blue-700 text-sm font-medium">2028+ &bull; Strategic</p>
                 </div>
               </div>
               <div className="w-10 h-10 bg-blue-500 rounded-full border-4 border-white shadow-lg z-10"></div>
