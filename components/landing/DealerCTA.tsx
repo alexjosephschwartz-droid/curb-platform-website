@@ -2,8 +2,13 @@
 
 import { useState } from 'react';
 
+const FORMSPREE_URL = 'https://formspree.io/f/xvzrezkd';
+
 export default function DealerCTA() {
   const [showDealerForm, setShowDealerForm] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState('');
   const [dealerForm, setDealerForm] = useState({
     businessName: '',
     email: '',
@@ -12,11 +17,37 @@ export default function DealerCTA() {
     inventoryVolume: '',
   });
 
-  const handleDealerSubmit = (e: React.FormEvent) => {
+  const handleDealerSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    alert('Thank you for your interest! Our team will contact you shortly.');
-    setDealerForm({ businessName: '', email: '', phone: '', locations: '', inventoryVolume: '' });
+    setSubmitting(true);
+    setError('');
+    try {
+      const res = await fetch(FORMSPREE_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify({
+          ...dealerForm,
+          source: 'curb-dealer-cta',
+          submittedAt: new Date().toISOString(),
+        }),
+      });
+      if (res.ok) {
+        setSubmitted(true);
+        setDealerForm({ businessName: '', email: '', phone: '', locations: '', inventoryVolume: '' });
+      } else {
+        setError('Something went wrong. Please try again.');
+      }
+    } catch {
+      setError('Network error. Please check your connection and try again.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const closeModal = () => {
     setShowDealerForm(false);
+    setSubmitted(false);
+    setError('');
   };
 
   return (
@@ -31,32 +62,52 @@ export default function DealerCTA() {
       </div>
 
       {showDealerForm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl max-w-md w-full p-8">
-            <h3 className="text-2xl font-bold text-curb-navy mb-6">Request Dealer Access</h3>
-            <form onSubmit={handleDealerSubmit} className="space-y-4">
-              <input type="text" placeholder="Business Name" required value={dealerForm.businessName} onChange={(e) => setDealerForm({ ...dealerForm, businessName: e.target.value })} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-curb-orange" />
-              <input type="email" placeholder="Email" required value={dealerForm.email} onChange={(e) => setDealerForm({ ...dealerForm, email: e.target.value })} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-curb-orange" />
-              <input type="tel" placeholder="Phone Number" required value={dealerForm.phone} onChange={(e) => setDealerForm({ ...dealerForm, phone: e.target.value })} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-curb-orange" />
-              <select required value={dealerForm.locations} onChange={(e) => setDealerForm({ ...dealerForm, locations: e.target.value })} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-curb-orange">
-                <option value="">Number of Locations</option>
-                <option value="1">1 Location</option>
-                <option value="2-5">2-5 Locations</option>
-                <option value="6-10">6-10 Locations</option>
-                <option value="10+">10+ Locations</option>
-              </select>
-              <select required value={dealerForm.inventoryVolume} onChange={(e) => setDealerForm({ ...dealerForm, inventoryVolume: e.target.value })} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-curb-orange">
-                <option value="">Monthly Inventory Volume</option>
-                <option value="10-50">10-50 vehicles</option>
-                <option value="50-100">50-100 vehicles</option>
-                <option value="100-200">100-200 vehicles</option>
-                <option value="200+">200+ vehicles</option>
-              </select>
-              <div className="flex gap-4 mt-6">
-                <button type="button" onClick={() => setShowDealerForm(false)} className="flex-1 px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition font-medium">Cancel</button>
-                <button type="submit" className="flex-1 px-6 py-3 bg-curb-orange text-white rounded-lg hover:bg-orange-600 transition font-medium">Submit Request</button>
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={closeModal}>
+          <div className="bg-white rounded-xl max-w-md w-full p-8" onClick={(e) => e.stopPropagation()}>
+            {submitted ? (
+              <div className="text-center py-6">
+                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-8 h-8 text-green-600" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
+                    <path d="M5 13l4 4L19 7"></path>
+                  </svg>
+                </div>
+                <h3 className="text-2xl font-bold text-curb-navy mb-2">Request Received!</h3>
+                <p className="text-gray-600 mb-6">Our team will contact you shortly about dealer partnerships.</p>
+                <button onClick={closeModal} className="px-6 py-3 bg-curb-orange text-white rounded-lg hover:bg-orange-600 transition font-medium">
+                  Done
+                </button>
               </div>
-            </form>
+            ) : (
+              <>
+                <h3 className="text-2xl font-bold text-curb-navy mb-6">Request Dealer Access</h3>
+                <form onSubmit={handleDealerSubmit} className="space-y-4">
+                  <input type="text" placeholder="Business Name" required value={dealerForm.businessName} onChange={(e) => setDealerForm({ ...dealerForm, businessName: e.target.value })} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-curb-orange" disabled={submitting} />
+                  <input type="email" placeholder="Email" required value={dealerForm.email} onChange={(e) => setDealerForm({ ...dealerForm, email: e.target.value })} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-curb-orange" disabled={submitting} />
+                  <input type="tel" placeholder="Phone Number" required value={dealerForm.phone} onChange={(e) => setDealerForm({ ...dealerForm, phone: e.target.value })} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-curb-orange" disabled={submitting} />
+                  <select required value={dealerForm.locations} onChange={(e) => setDealerForm({ ...dealerForm, locations: e.target.value })} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-curb-orange" disabled={submitting}>
+                    <option value="">Number of Locations</option>
+                    <option value="1">1 Location</option>
+                    <option value="2-5">2-5 Locations</option>
+                    <option value="6-10">6-10 Locations</option>
+                    <option value="10+">10+ Locations</option>
+                  </select>
+                  <select required value={dealerForm.inventoryVolume} onChange={(e) => setDealerForm({ ...dealerForm, inventoryVolume: e.target.value })} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-curb-orange" disabled={submitting}>
+                    <option value="">Monthly Inventory Volume</option>
+                    <option value="10-50">10-50 vehicles</option>
+                    <option value="50-100">50-100 vehicles</option>
+                    <option value="100-200">100-200 vehicles</option>
+                    <option value="200+">200+ vehicles</option>
+                  </select>
+                  {error && <p className="text-red-600 text-sm">{error}</p>}
+                  <div className="flex gap-4 mt-6">
+                    <button type="button" onClick={closeModal} className="flex-1 px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition font-medium" disabled={submitting}>Cancel</button>
+                    <button type="submit" disabled={submitting} className="flex-1 px-6 py-3 bg-curb-orange text-white rounded-lg hover:bg-orange-600 transition font-medium disabled:opacity-60 disabled:cursor-not-allowed">
+                      {submitting ? 'Submitting...' : 'Submit Request'}
+                    </button>
+                  </div>
+                </form>
+              </>
+            )}
           </div>
         </div>
       )}
