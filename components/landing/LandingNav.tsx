@@ -30,12 +30,9 @@ export default function LandingNav() {
               <span className="text-2xl font-bold text-curb-navy">CURB</span>
             </div>
             <div className="hidden md:flex space-x-8">
-              <Link href="/browse" className="text-gray-700 hover:text-curb-orange transition">Browse Auctions</Link>
               <a href="#how-it-works" className="text-gray-700 hover:text-curb-orange transition">How It Works</a>
-              <a href="#buyers" className="text-gray-700 hover:text-curb-orange transition">For Buyers</a>
               <a href="#dealers" className="text-gray-700 hover:text-curb-orange transition">For Dealers</a>
-              <Link href="/roadmap" className="text-gray-700 hover:text-curb-orange transition">Roadmap</Link>
-              <a href="#faq" className="text-gray-700 hover:text-curb-orange transition">FAQ</a>
+              <Link href="/about" className="text-gray-700 hover:text-curb-orange transition">About</Link>
             </div>
             <button
               onClick={() => setShowBuyerForm(true)}
