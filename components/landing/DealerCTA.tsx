@@ -63,7 +63,7 @@ export default function DealerCTA() {
 
       {showDealerForm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={closeModal}>
-          <div className="bg-white rounded-xl max-w-md w-full p-8" onClick={(e) => e.stopPropagation()}>
+          <div className="bg-white rounded-xl max-w-md w-full p-8 text-gray-900" onClick={(e) => e.stopPropagation()}>
             {submitted ? (
               <div className="text-center py-6">
                 <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
