@@ -232,7 +232,7 @@ export default function Home() {
             <div>
               <h4 className="font-semibold mb-4">Company</h4>
               <ul className="space-y-2 text-gray-400">
-                <li><a href="#" className="hover:text-curb-orange transition">About</a></li>
+                <li><Link href="/about" className="hover:text-curb-orange transition">About</Link></li>
                 <li><a href="#" className="hover:text-curb-orange transition">Contact</a></li>
                 <li><a href="#" className="hover:text-curb-orange transition">Privacy</a></li>
                 <li><a href="#" className="hover:text-curb-orange transition">Terms</a></li>
