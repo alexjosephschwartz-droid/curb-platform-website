@@ -26,9 +26,12 @@ export default function DealerRevenueCalculator() {
   // Cars sell at a discount to full retail (but well above wholesale)
   const curbSalePrice = Math.round(retailValue * (1 - curbDiscount / 100));
   const listingFee = 100;
-  const curbSaleGross = curbSalePrice - listingFee;
-  const serviceProfit = Math.round(repairCost * (serviceMargin / 100));
-  const curbTotal = curbSaleGross + serviceProfit - acv;
+  // Front-end gross: sale minus ACV, listing fee, and recon cost charged by service dept
+  const curbFrontGross = curbSalePrice - acv - listingFee - repairCost;
+  // Service/Parts dept gross: margin earned on the recon work
+  const serviceDeptGross = Math.round(repairCost * (serviceMargin / 100));
+  // Total store gross = front-end + service dept
+  const curbTotal = curbFrontGross + serviceDeptGross;
 
   // --- Delta ---
   const extraPerCar = curbTotal - wholesaleNet;
@@ -169,6 +172,7 @@ export default function DealerRevenueCalculator() {
               Wholesale Auction
             </h4>
             <div className="space-y-3">
+              <p className="text-gray-500 text-xs uppercase tracking-wider">Front-End Gross</p>
               <div className="flex justify-between">
                 <span className="text-gray-300 text-sm">Sale price (~72% of retail)</span>
                 <span className="text-white font-medium">{fmt(wholesalePrice)}</span>
@@ -185,12 +189,17 @@ export default function DealerRevenueCalculator() {
                 <span className="text-gray-300 text-sm">Transport to auction</span>
                 <span className="text-red-400 font-medium">-{fmt(transportCost)}</span>
               </div>
+              <div className="flex justify-between border-b border-white/10 pb-2">
+                <span className="text-gray-400 text-sm font-medium">Front-end</span>
+                <span className={`font-medium text-sm ${wholesaleNet >= 0 ? 'text-white' : 'text-red-400'}`}>{fmt(wholesaleNet)}</span>
+              </div>
+              <p className="text-gray-500 text-xs uppercase tracking-wider pt-1">Service / Parts Dept</p>
               <div className="flex justify-between">
                 <span className="text-gray-300 text-sm">Service revenue</span>
                 <span className="text-gray-500 font-medium">$0</span>
               </div>
               <div className="border-t border-white/20 pt-3 flex justify-between">
-                <span className="text-white font-semibold">Profit per car</span>
+                <span className="text-white font-semibold">Total store gross</span>
                 <span className={`font-bold text-xl ${wholesaleNet >= 0 ? 'text-white' : 'text-red-400'}`}>{fmt(wholesaleNet)}</span>
               </div>
             </div>
@@ -202,6 +211,8 @@ export default function DealerRevenueCalculator() {
               On Curb
             </h4>
             <div className="space-y-3">
+              {/* Front-end section */}
+              <p className="text-gray-500 text-xs uppercase tracking-wider">Front-End Gross</p>
               <div className="flex justify-between">
                 <span className="text-gray-300 text-sm">
                   Sale price ({100 - curbDiscount}% of retail)
@@ -217,17 +228,24 @@ export default function DealerRevenueCalculator() {
                 <span className="text-red-400 font-medium">-{fmt(listingFee)}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-300 text-sm">Transport</span>
-                <span className="text-gray-500 font-medium">$0 (stays on lot)</span>
+                <span className="text-gray-300 text-sm">Recon / safety repairs</span>
+                <span className="text-red-400 font-medium">-{fmt(repairCost)}</span>
               </div>
+              <div className="flex justify-between border-b border-white/10 pb-2">
+                <span className="text-gray-400 text-sm font-medium">Front-end</span>
+                <span className={`font-medium text-sm ${curbFrontGross >= 0 ? 'text-white' : 'text-red-400'}`}>{fmt(curbFrontGross)}</span>
+              </div>
+              {/* Service dept section */}
+              <p className="text-gray-500 text-xs uppercase tracking-wider pt-1">Service / Parts Dept</p>
               <div className="flex justify-between">
                 <span className="text-gray-300 text-sm">
-                  Service profit ({pctFmt(serviceMargin)} on {fmt(repairCost)})
+                  Recon gross ({pctFmt(serviceMargin)} margin on {fmt(repairCost)})
                 </span>
-                <span className="text-green-400 font-medium">+{fmt(serviceProfit)}</span>
+                <span className="text-green-400 font-medium">+{fmt(serviceDeptGross)}</span>
               </div>
+              {/* Total */}
               <div className="border-t border-white/20 pt-3 flex justify-between">
-                <span className="text-white font-semibold">Profit per car</span>
+                <span className="text-white font-semibold">Total store gross</span>
                 <span className="text-curb-orange font-bold text-xl">{fmt(curbTotal)}</span>
               </div>
             </div>
