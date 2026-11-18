@@ -4,10 +4,14 @@ import { useState } from "react";
 
 export default function DealerRevenueCalculator() {
   const [retailValue, setRetailValue] = useState(16000);
+  const [acvPercent, setAcvPercent] = useState(62); // ACV as % of retail (what dealer paid on trade)
   const [curbDiscount, setCurbDiscount] = useState(12); // % below retail Curb cars sell at
   const [repairCost, setRepairCost] = useState(1500);
   const [serviceMargin, setServiceMargin] = useState(55);
   const [carsPerMonth, setCarsPerMonth] = useState(10);
+
+  // --- Vehicle acquisition cost ---
+  const acv = Math.round(retailValue * (acvPercent / 100));
 
   // --- Wholesale auction scenario ---
   // Wholesale is typically 25-30% below retail (using 28% avg)
@@ -15,15 +19,16 @@ export default function DealerRevenueCalculator() {
   const wholesalePrice = Math.round(retailValue * (1 - wholesaleDiscount));
   const auctionFees = 350; // avg Manheim/ADESA seller fees
   const transportCost = 200; // avg transport to auction
-  const wholesaleNet = wholesalePrice - auctionFees - transportCost;
+  const wholesaleGross = wholesalePrice - auctionFees - transportCost;
+  const wholesaleNet = wholesaleGross - acv;
 
   // --- Curb scenario ---
   // Cars sell at a discount to full retail (but well above wholesale)
   const curbSalePrice = Math.round(retailValue * (1 - curbDiscount / 100));
   const listingFee = 100;
-  const curbSaleNet = curbSalePrice - listingFee;
+  const curbSaleGross = curbSalePrice - listingFee;
   const serviceProfit = Math.round(repairCost * (serviceMargin / 100));
-  const curbTotal = curbSaleNet + serviceProfit;
+  const curbTotal = curbSaleGross + serviceProfit - acv;
 
   // --- Delta ---
   const extraPerCar = curbTotal - wholesaleNet;
@@ -71,6 +76,24 @@ export default function DealerRevenueCalculator() {
                 className="w-full accent-curb-orange"
               />
               <span className="text-white font-bold text-lg">{fmt(retailValue)}</span>
+            </div>
+            <div>
+              <label className="block text-sm text-gray-300 mb-1">
+                Trade-In ACV (your cost)
+              </label>
+              <input
+                type="range"
+                min={40}
+                max={80}
+                step={1}
+                value={acvPercent}
+                onChange={(e) => setAcvPercent(Number(e.target.value))}
+                className="w-full accent-curb-orange"
+              />
+              <span className="text-white font-bold text-lg">{fmt(acv)}</span>
+              <span className="text-gray-500 text-xs ml-2">
+                {acvPercent}% of retail
+              </span>
             </div>
             <div>
               <label className="block text-sm text-gray-300 mb-1">
@@ -151,6 +174,10 @@ export default function DealerRevenueCalculator() {
                 <span className="text-white font-medium">{fmt(wholesalePrice)}</span>
               </div>
               <div className="flex justify-between">
+                <span className="text-gray-300 text-sm">Your cost (ACV)</span>
+                <span className="text-red-400 font-medium">-{fmt(acv)}</span>
+              </div>
+              <div className="flex justify-between">
                 <span className="text-gray-300 text-sm">Auction fees</span>
                 <span className="text-red-400 font-medium">-{fmt(auctionFees)}</span>
               </div>
@@ -163,8 +190,8 @@ export default function DealerRevenueCalculator() {
                 <span className="text-gray-500 font-medium">$0</span>
               </div>
               <div className="border-t border-white/20 pt-3 flex justify-between">
-                <span className="text-white font-semibold">Net per car</span>
-                <span className="text-white font-bold text-xl">{fmt(wholesaleNet)}</span>
+                <span className="text-white font-semibold">Profit per car</span>
+                <span className={`font-bold text-xl ${wholesaleNet >= 0 ? 'text-white' : 'text-red-400'}`}>{fmt(wholesaleNet)}</span>
               </div>
             </div>
           </div>
@@ -182,6 +209,10 @@ export default function DealerRevenueCalculator() {
                 <span className="text-white font-medium">{fmt(curbSalePrice)}</span>
               </div>
               <div className="flex justify-between">
+                <span className="text-gray-300 text-sm">Your cost (ACV)</span>
+                <span className="text-red-400 font-medium">-{fmt(acv)}</span>
+              </div>
+              <div className="flex justify-between">
                 <span className="text-gray-300 text-sm">Listing fee</span>
                 <span className="text-red-400 font-medium">-{fmt(listingFee)}</span>
               </div>
@@ -196,7 +227,7 @@ export default function DealerRevenueCalculator() {
                 <span className="text-green-400 font-medium">+{fmt(serviceProfit)}</span>
               </div>
               <div className="border-t border-white/20 pt-3 flex justify-between">
-                <span className="text-white font-semibold">Net per car</span>
+                <span className="text-white font-semibold">Profit per car</span>
                 <span className="text-curb-orange font-bold text-xl">{fmt(curbTotal)}</span>
               </div>
             </div>
@@ -205,7 +236,7 @@ export default function DealerRevenueCalculator() {
 
         {/* Bottom line — dealer */}
         <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 text-center mb-4">
-          <p className="text-gray-300 text-sm mb-1">Extra revenue per car on Curb</p>
+          <p className="text-gray-300 text-sm mb-1">Extra profit per car on Curb</p>
           <p className="text-curb-orange font-bold text-4xl mb-4">
             {extraPerCar >= 0 ? "+" : ""}{fmt(extraPerCar)}
           </p>
