@@ -181,8 +181,11 @@ export default function ListVehicle() {
 
       // Success — redirect to dashboard
       router.push('/dealer/dashboard?listed=true');
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to submit listing');
+    } catch (err: unknown) {
+      const msg = err instanceof Error
+        ? err.message
+        : (err as { message?: string })?.message || 'Failed to submit listing';
+      setError(msg);
       setUploadingPhotos(false);
     }
     setSubmitting(false);
