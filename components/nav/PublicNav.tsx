@@ -7,8 +7,10 @@ export default function PublicNav() {
   const pathname = usePathname();
 
   const links = [
-    { href: '/browse', label: 'Browse Auctions' },
+    { href: '/#how-it-works', label: 'How It Works' },
+    { href: '/#for-dealers', label: 'For Dealers' },
     { href: '/roadmap', label: 'Roadmap' },
+    { href: '/about', label: 'About' },
   ];
 
   return (
@@ -38,9 +40,15 @@ export default function PublicNav() {
           <div className="flex items-center gap-4">
             <Link
               href="/login"
-              className="bg-curb-orange text-white px-5 py-2 rounded-lg font-semibold hover:bg-orange-600 transition"
+              className="text-gray-600 hover:text-curb-navy font-medium transition hidden md:block"
             >
               Sign In
+            </Link>
+            <Link
+              href="/signup"
+              className="bg-curb-orange text-white px-5 py-2 rounded-full font-semibold hover:bg-orange-600 transition text-sm"
+            >
+              Get Early Access
             </Link>
           </div>
         </div>
