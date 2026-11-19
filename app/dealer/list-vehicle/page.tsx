@@ -1,57 +1,112 @@
 'use client';
 
-import { useState } from 'react';
-import Link from 'next/link';
+import { useState, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
+import { createClient } from '@/lib/supabase/client';
+import { decodeVIN } from '@/lib/vin-decode';
+import { useUser } from '@/lib/hooks/useUser';
+import type { Database } from '@/types/database';
 
-type Step = 'vin' | 'photos' | 'condition' | 'inspection' | 'repairs' | 'auction' | 'review';
+type Step = 'vin' | 'photos' | 'condition' | 'pricing' | 'review';
 
 export default function ListVehicle() {
+  const router = useRouter();
+  const { user, profile } = useUser();
   const [currentStep, setCurrentStep] = useState<Step>('vin');
+  const [vinLoading, setVinLoading] = useState(false);
+  const [vinDecoded, setVinDecoded] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState('');
+  const [uploadingPhotos, setUploadingPhotos] = useState(false);
+
   const [formData, setFormData] = useState({
     vin: '',
-    year: '',
+    year: 0,
     make: '',
     model: '',
     trim: '',
-    mileage: '',
-    color: '',
+    bodyStyle: '',
+    engine: '',
     transmission: '',
-    photos: [] as string[],
-    exteriorCondition: '',
-    interiorCondition: '',
-    mechanicalCondition: '',
-    inspectionSummary: '',
+    drivetrain: '',
+    fuelType: '',
+    mileage: '',
+    exteriorColor: '',
+    interiorColor: '',
+    // Condition
+    conditionNotes: '',
     knownIssues: '',
-    titleStatus: 'Clean',
-    repairs: [] as { item: string; cost: number }[],
-    minimumBid: '',
-    listingTitle: '',
-    description: '',
+    // Pricing
+    retailValue: '',
+    reservePrice: '',
+    repairEstimate: '',
+    // Photos
+    photos: [] as File[],
+    photoUrls: [] as string[],
   });
 
   const steps: { id: Step; label: string; number: number }[] = [
-    { id: 'vin', label: 'VIN Decode', number: 1 },
+    { id: 'vin', label: 'VIN & Details', number: 1 },
     { id: 'photos', label: 'Photos', number: 2 },
     { id: 'condition', label: 'Condition', number: 3 },
-    { id: 'inspection', label: 'Inspection', number: 4 },
-    { id: 'repairs', label: 'Repairs', number: 5 },
-    { id: 'auction', label: 'Auction Settings', number: 6 },
-    { id: 'review', label: 'Review', number: 7 },
+    { id: 'pricing', label: 'Pricing', number: 4 },
+    { id: 'review', label: 'Review & Submit', number: 5 },
   ];
 
   const currentStepIndex = steps.findIndex((s) => s.id === currentStep);
 
-  const handleVinDecode = () => {
-    // Mock VIN decode - in production this would call NHTSA API
-    setFormData({
-      ...formData,
-      year: '2019',
-      make: 'Honda',
-      model: 'Civic',
-      trim: 'EX',
-      color: 'Silver',
-      transmission: 'Automatic',
-    });
+  const handleVinDecode = async () => {
+    if (formData.vin.length !== 17) return;
+    setVinLoading(true);
+    setError('');
+
+    try {
+      const result = await decodeVIN(formData.vin);
+      if (result.error) {
+        setError(result.error);
+      } else {
+        setFormData({
+          ...formData,
+          year: result.year || 0,
+          make: result.make || '',
+          model: result.model || '',
+          trim: result.trim || '',
+          bodyStyle: result.bodyStyle || '',
+          engine: result.engine || '',
+          transmission: result.transmission || '',
+          drivetrain: result.drivetrain || '',
+          fuelType: result.fuelType || '',
+        });
+        setVinDecoded(true);
+      }
+    } catch {
+      setError('Failed to decode VIN. Please try again.');
+    }
+    setVinLoading(false);
+  };
+
+  const handlePhotoUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length + formData.photos.length > 20) {
+      setError('Maximum 20 photos allowed');
+      return;
+    }
+
+    // Create preview URLs
+    const newUrls = files.map((f) => URL.createObjectURL(f));
+    setFormData((prev) => ({
+      ...prev,
+      photos: [...prev.photos, ...files],
+      photoUrls: [...prev.photoUrls, ...newUrls],
+    }));
+  }, [formData.photos.length]);
+
+  const removePhoto = (index: number) => {
+    setFormData((prev) => ({
+      ...prev,
+      photos: prev.photos.filter((_, i) => i !== index),
+      photoUrls: prev.photoUrls.filter((_, i) => i !== index),
+    }));
   };
 
   const nextStep = () => {
@@ -66,27 +121,77 @@ export default function ListVehicle() {
     }
   };
 
-  const addRepair = () => {
-    setFormData({
-      ...formData,
-      repairs: [...formData.repairs, { item: '', cost: 0 }],
-    });
+  const handleSubmit = async () => {
+    if (!user || !profile) return;
+    setSubmitting(true);
+    setError('');
+
+    try {
+      const supabase = createClient();
+
+      // Upload photos to Supabase Storage
+      setUploadingPhotos(true);
+      const uploadedUrls: string[] = [];
+      for (const photo of formData.photos) {
+        const fileExt = photo.name.split('.').pop();
+        const fileName = `${user.id}/${Date.now()}-${Math.random().toString(36).slice(2)}.${fileExt}`;
+        const { data, error: uploadError } = await supabase.storage
+          .from('vehicle-photos')
+          .upload(fileName, photo);
+
+        if (uploadError) throw uploadError;
+
+        const { data: urlData } = supabase.storage
+          .from('vehicle-photos')
+          .getPublicUrl(data.path);
+
+        uploadedUrls.push(urlData.publicUrl);
+      }
+      setUploadingPhotos(false);
+
+      // Insert vehicle record
+      const vehicleData: Database['public']['Tables']['vehicles']['Insert'] = {
+        dealer_id: user.id,
+        vin: formData.vin,
+        year: formData.year,
+        make: formData.make,
+        model: formData.model,
+        trim: formData.trim || null,
+        body_style: formData.bodyStyle || null,
+        engine: formData.engine || null,
+        transmission: formData.transmission || null,
+        drivetrain: formData.drivetrain || null,
+        fuel_type: formData.fuelType || null,
+        exterior_color: formData.exteriorColor || null,
+        interior_color: formData.interiorColor || null,
+        mileage: parseInt(formData.mileage),
+        retail_value: formData.retailValue ? Math.round(parseFloat(formData.retailValue) * 100) : null,
+        reserve_price: Math.round(parseFloat(formData.reservePrice) * 100),
+        repair_estimate: formData.repairEstimate ? Math.round(parseFloat(formData.repairEstimate) * 100) : null,
+        condition_notes: formData.conditionNotes || null,
+        known_issues: formData.knownIssues || null,
+        photos: uploadedUrls,
+        photo_count: uploadedUrls.length,
+        status: 'pending_approval' as const,
+      };
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error: insertError } = await (supabase.from('vehicles') as any).insert(vehicleData);
+
+      if (insertError) throw insertError;
+
+      // Success — redirect to dashboard
+      router.push('/dealer/dashboard?listed=true');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to submit listing');
+      setUploadingPhotos(false);
+    }
+    setSubmitting(false);
   };
 
-  const updateRepair = (index: number, field: 'item' | 'cost', value: string | number) => {
-    const newRepairs = [...formData.repairs];
-    newRepairs[index] = { ...newRepairs[index], [field]: value };
-    setFormData({ ...formData, repairs: newRepairs });
+  const fmt = (n: string) => {
+    const num = parseFloat(n);
+    return isNaN(num) ? '$0' : `$${num.toLocaleString()}`;
   };
-
-  const removeRepair = (index: number) => {
-    setFormData({
-      ...formData,
-      repairs: formData.repairs.filter((_, i) => i !== index),
-    });
-  };
-
-  const totalRepairCost = formData.repairs.reduce((sum, repair) => sum + (repair.cost || 0), 0);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -94,7 +199,7 @@ export default function ListVehicle() {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-curb-navy mb-2">List New Vehicle</h1>
-          <p className="text-gray-600">Complete all steps to publish your auction</p>
+          <p className="text-gray-600">Complete all steps to submit your vehicle for review</p>
         </div>
 
         {/* Progress Steps */}
@@ -103,96 +208,103 @@ export default function ListVehicle() {
             {steps.map((step, index) => (
               <div key={step.id} className="flex items-center flex-1">
                 <div className="flex flex-col items-center flex-1">
-                  <div
-                    className={`w-10 h-10 rounded-full flex items-center justify-center font-bold mb-2 ${
-                      index <= currentStepIndex
-                        ? 'bg-curb-orange text-white'
-                        : 'bg-gray-200 text-gray-500'
-                    }`}
-                  >
-                    {step.number}
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold mb-2 ${
+                    index <= currentStepIndex ? 'bg-curb-orange text-white' : 'bg-gray-200 text-gray-500'
+                  }`}>
+                    {index < currentStepIndex ? '✓' : step.number}
                   </div>
-                  <span
-                    className={`text-xs text-center ${
-                      index <= currentStepIndex ? 'text-curb-orange font-medium' : 'text-gray-500'
-                    }`}
-                  >
+                  <span className={`text-xs text-center ${
+                    index <= currentStepIndex ? 'text-curb-orange font-medium' : 'text-gray-500'
+                  }`}>
                     {step.label}
                   </span>
                 </div>
                 {index < steps.length - 1 && (
-                  <div
-                    className={`h-1 flex-1 mx-2 ${
-                      index < currentStepIndex ? 'bg-curb-orange' : 'bg-gray-200'
-                    }`}
-                  />
+                  <div className={`h-1 flex-1 mx-2 ${index < currentStepIndex ? 'bg-curb-orange' : 'bg-gray-200'}`} />
                 )}
               </div>
             ))}
           </div>
         </div>
 
+        {error && (
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg">{error}</div>
+        )}
+
         {/* Form Content */}
         <div className="bg-white rounded-xl shadow-sm p-8">
           {/* Step 1: VIN Decode */}
           {currentStep === 'vin' && (
             <div>
-              <h2 className="text-2xl font-bold text-curb-navy mb-6">Step 1: VIN Decode</h2>
+              <h2 className="text-2xl font-bold text-curb-navy mb-6">Vehicle Information</h2>
               <div className="space-y-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Vehicle Identification Number (VIN)
                   </label>
-                  <input
-                    type="text"
-                    value={formData.vin}
-                    onChange={(e) => setFormData({ ...formData, vin: e.target.value.toUpperCase() })}
-                    placeholder="Enter 17-character VIN"
-                    maxLength={17}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-curb-orange"
-                  />
-                  <button
-                    onClick={handleVinDecode}
-                    disabled={formData.vin.length !== 17}
-                    className="mt-3 px-6 py-2 bg-curb-navy text-white rounded-lg hover:bg-slate-800 transition disabled:bg-gray-300"
-                  >
-                    Decode VIN
-                  </button>
+                  <div className="flex gap-3">
+                    <input
+                      type="text"
+                      value={formData.vin}
+                      onChange={(e) => {
+                        setFormData({ ...formData, vin: e.target.value.toUpperCase() });
+                        setVinDecoded(false);
+                      }}
+                      placeholder="Enter 17-character VIN"
+                      maxLength={17}
+                      className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-curb-orange text-gray-900"
+                    />
+                    <button
+                      onClick={handleVinDecode}
+                      disabled={formData.vin.length !== 17 || vinLoading}
+                      className="px-6 py-3 bg-curb-navy text-white rounded-lg hover:bg-slate-800 transition disabled:bg-gray-300 disabled:cursor-not-allowed whitespace-nowrap"
+                    >
+                      {vinLoading ? 'Decoding...' : 'Decode VIN'}
+                    </button>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">{formData.vin.length}/17 characters</p>
                 </div>
 
-                {formData.year && (
+                {vinDecoded && (
                   <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                    <h3 className="font-semibold text-green-800 mb-3">✓ VIN Decoded Successfully</h3>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <p className="text-sm text-gray-600">Year</p>
-                        <p className="font-semibold">{formData.year}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-600">Make</p>
-                        <p className="font-semibold">{formData.make}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-600">Model</p>
-                        <p className="font-semibold">{formData.model}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-600">Trim</p>
-                        <p className="font-semibold">{formData.trim}</p>
-                      </div>
+                    <h3 className="font-semibold text-green-800 mb-3">VIN Decoded Successfully</h3>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+                      <div><p className="text-gray-600">Year</p><p className="font-semibold">{formData.year}</p></div>
+                      <div><p className="text-gray-600">Make</p><p className="font-semibold">{formData.make}</p></div>
+                      <div><p className="text-gray-600">Model</p><p className="font-semibold">{formData.model}</p></div>
+                      {formData.trim && <div><p className="text-gray-600">Trim</p><p className="font-semibold">{formData.trim}</p></div>}
+                      {formData.bodyStyle && <div><p className="text-gray-600">Body</p><p className="font-semibold">{formData.bodyStyle}</p></div>}
+                      {formData.engine && <div><p className="text-gray-600">Engine</p><p className="font-semibold">{formData.engine}</p></div>}
+                      {formData.transmission && <div><p className="text-gray-600">Transmission</p><p className="font-semibold">{formData.transmission}</p></div>}
+                      {formData.drivetrain && <div><p className="text-gray-600">Drivetrain</p><p className="font-semibold">{formData.drivetrain}</p></div>}
+                      {formData.fuelType && <div><p className="text-gray-600">Fuel</p><p className="font-semibold">{formData.fuelType}</p></div>}
                     </div>
                   </div>
                 )}
 
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Mileage</label>
+                    <input type="number" value={formData.mileage}
+                      onChange={(e) => setFormData({ ...formData, mileage: e.target.value })}
+                      placeholder="Current odometer reading"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-curb-orange text-gray-900" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Exterior Color</label>
+                    <input type="text" value={formData.exteriorColor}
+                      onChange={(e) => setFormData({ ...formData, exteriorColor: e.target.value })}
+                      placeholder="e.g., Silver Metallic"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-curb-orange text-gray-900" />
+                  </div>
+                </div>
+
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Mileage</label>
-                  <input
-                    type="number"
-                    value={formData.mileage}
-                    onChange={(e) => setFormData({ ...formData, mileage: e.target.value })}
-                    placeholder="Current mileage"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-curb-orange"
-                  />
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Interior Color</label>
+                  <input type="text" value={formData.interiorColor}
+                    onChange={(e) => setFormData({ ...formData, interiorColor: e.target.value })}
+                    placeholder="e.g., Black Cloth"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-curb-orange text-gray-900" />
                 </div>
               </div>
             </div>
@@ -201,281 +313,169 @@ export default function ListVehicle() {
           {/* Step 2: Photos */}
           {currentStep === 'photos' && (
             <div>
-              <h2 className="text-2xl font-bold text-curb-navy mb-6">Step 2: Upload Photos</h2>
+              <h2 className="text-2xl font-bold text-curb-navy mb-6">Upload Photos</h2>
               <p className="text-gray-600 mb-6">
                 Upload at least 5 photos: exterior (4 angles), interior, engine bay, dashboard, odometer
               </p>
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-12 text-center hover:border-curb-orange transition">
+
+              <label className="block border-2 border-dashed border-gray-300 rounded-lg p-12 text-center hover:border-curb-orange transition cursor-pointer">
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={handlePhotoUpload}
+                  className="hidden"
+                />
                 <div className="text-5xl mb-4">📸</div>
-                <p className="text-lg font-semibold text-curb-navy mb-2">Drag and drop photos here</p>
-                <p className="text-gray-600 mb-4">or</p>
-                <button className="px-6 py-3 bg-curb-orange text-white rounded-lg hover:bg-orange-600 transition font-medium">
-                  Browse Files
-                </button>
-                <p className="text-sm text-gray-500 mt-4">Maximum 10 photos, 5MB each</p>
-              </div>
-              <div className="mt-6">
-                <p className="text-sm text-gray-600">
-                  {formData.photos.length} photo(s) uploaded (minimum 5 required)
-                </p>
-              </div>
+                <p className="text-lg font-semibold text-curb-navy mb-2">Click to upload or drag photos here</p>
+                <p className="text-sm text-gray-500">JPG, PNG up to 10MB each. Maximum 20 photos.</p>
+              </label>
+
+              {formData.photoUrls.length > 0 && (
+                <div className="mt-6">
+                  <p className="text-sm font-medium text-gray-700 mb-3">{formData.photoUrls.length} photo(s) selected</p>
+                  <div className="grid grid-cols-4 gap-3">
+                    {formData.photoUrls.map((url, i) => (
+                      <div key={i} className="relative group">
+                        <img src={url} alt={`Vehicle photo ${i + 1}`} className="w-full h-24 object-cover rounded-lg" />
+                        <button
+                          onClick={() => removePhoto(i)}
+                          className="absolute top-1 right-1 w-6 h-6 bg-red-500 text-white rounded-full text-xs opacity-0 group-hover:opacity-100 transition"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {formData.photoUrls.length < 5 && (
+                <p className="mt-4 text-sm text-amber-600">Minimum 5 photos required ({5 - formData.photoUrls.length} more needed)</p>
+              )}
             </div>
           )}
 
           {/* Step 3: Condition */}
           {currentStep === 'condition' && (
             <div>
-              <h2 className="text-2xl font-bold text-curb-navy mb-6">Step 3: Condition Checklist</h2>
-              <div className="space-y-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Exterior Condition</label>
-                  <select
-                    value={formData.exteriorCondition}
-                    onChange={(e) => setFormData({ ...formData, exteriorCondition: e.target.value })}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-curb-orange"
-                  >
-                    <option value="">Select condition</option>
-                    <option value="Excellent">Excellent - No visible damage</option>
-                    <option value="Good">Good - Minor scratches or dings</option>
-                    <option value="Fair">Fair - Noticeable damage or wear</option>
-                    <option value="Poor">Poor - Significant damage</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Interior Condition</label>
-                  <select
-                    value={formData.interiorCondition}
-                    onChange={(e) => setFormData({ ...formData, interiorCondition: e.target.value })}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-curb-orange"
-                  >
-                    <option value="">Select condition</option>
-                    <option value="Excellent">Excellent - Like new</option>
-                    <option value="Good">Good - Clean, minor wear</option>
-                    <option value="Fair">Fair - Stains or tears present</option>
-                    <option value="Poor">Poor - Heavy wear or damage</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Mechanical Condition</label>
-                  <select
-                    value={formData.mechanicalCondition}
-                    onChange={(e) => setFormData({ ...formData, mechanicalCondition: e.target.value })}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-curb-orange"
-                  >
-                    <option value="">Select condition</option>
-                    <option value="Excellent">Excellent - Runs perfectly</option>
-                    <option value="Good">Good - Minor issues</option>
-                    <option value="Fair">Fair - Needs work</option>
-                    <option value="Poor">Poor - Major repairs needed</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Step 4: Inspection */}
-          {currentStep === 'inspection' && (
-            <div>
-              <h2 className="text-2xl font-bold text-curb-navy mb-6">Step 4: Inspection Report</h2>
+              <h2 className="text-2xl font-bold text-curb-navy mb-6">Vehicle Condition</h2>
               <div className="space-y-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Inspection Summary
+                    Condition Notes
                   </label>
-                  <textarea
-                    value={formData.inspectionSummary}
-                    onChange={(e) => setFormData({ ...formData, inspectionSummary: e.target.value })}
-                    placeholder="Describe the overall condition, maintenance history, and notable features..."
+                  <textarea value={formData.conditionNotes}
+                    onChange={(e) => setFormData({ ...formData, conditionNotes: e.target.value })}
+                    placeholder="Describe the overall condition, maintenance history, and any notable features or wear..."
                     rows={4}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-curb-orange"
-                  />
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-curb-orange text-gray-900" />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Known Issues
+                    Known Issues (be transparent — builds buyer trust)
                   </label>
-                  <textarea
-                    value={formData.knownIssues}
+                  <textarea value={formData.knownIssues}
                     onChange={(e) => setFormData({ ...formData, knownIssues: e.target.value })}
-                    placeholder="List any known issues, check engine lights, warning indicators..."
+                    placeholder="List any known mechanical issues, warning lights, cosmetic damage, prior accidents..."
                     rows={3}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-curb-orange"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Title Status</label>
-                  <select
-                    value={formData.titleStatus}
-                    onChange={(e) => setFormData({ ...formData, titleStatus: e.target.value })}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-curb-orange"
-                  >
-                    <option value="Clean">Clean Title</option>
-                    <option value="Salvage">Salvage</option>
-                    <option value="Rebuilt">Rebuilt</option>
-                    <option value="Other">Other</option>
-                  </select>
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-curb-orange text-gray-900" />
                 </div>
               </div>
             </div>
           )}
 
-          {/* Step 5: Repairs */}
-          {currentStep === 'repairs' && (
+          {/* Step 4: Pricing */}
+          {currentStep === 'pricing' && (
             <div>
-              <h2 className="text-2xl font-bold text-curb-navy mb-6">Step 5: Required Repairs</h2>
-              <p className="text-gray-600 mb-6">
-                List repairs you'll complete before delivery if the vehicle sells
-              </p>
-
-              <div className="space-y-4 mb-6">
-                {formData.repairs.map((repair, index) => (
-                  <div key={index} className="flex gap-4">
-                    <input
-                      type="text"
-                      value={repair.item}
-                      onChange={(e) => updateRepair(index, 'item', e.target.value)}
-                      placeholder="Repair item (e.g., Brake pads replacement)"
-                      className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-curb-orange"
-                    />
-                    <input
-                      type="number"
-                      value={repair.cost || ''}
-                      onChange={(e) => updateRepair(index, 'cost', parseFloat(e.target.value) || 0)}
-                      placeholder="Cost"
-                      className="w-32 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-curb-orange"
-                    />
-                    <button
-                      onClick={() => removeRepair(index)}
-                      className="px-4 py-3 text-red-600 hover:bg-red-50 rounded-lg transition"
-                    >
-                      Remove
-                    </button>
-                  </div>
-                ))}
-              </div>
-
-              <button
-                onClick={addRepair}
-                className="mb-6 px-6 py-3 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-curb-orange hover:text-curb-orange transition w-full"
-              >
-                + Add Repair Item
-              </button>
-
-              {formData.repairs.length > 0 && (
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <div className="flex justify-between items-center">
-                    <span className="font-semibold text-curb-navy">Total Repair Cost</span>
-                    <span className="text-2xl font-bold text-curb-orange">
-                      ${totalRepairCost.toLocaleString()}
-                    </span>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Step 6: Auction Settings */}
-          {currentStep === 'auction' && (
-            <div>
-              <h2 className="text-2xl font-bold text-curb-navy mb-6">Step 6: Auction Settings</h2>
+              <h2 className="text-2xl font-bold text-curb-navy mb-6">Pricing</h2>
               <div className="space-y-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Listing Title
+                    Estimated Retail Value (KBB / lot price)
                   </label>
-                  <input
-                    type="text"
-                    value={formData.listingTitle}
-                    onChange={(e) => setFormData({ ...formData, listingTitle: e.target.value })}
-                    placeholder={`${formData.year} ${formData.make} ${formData.model} ${formData.trim}`}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-curb-orange"
-                  />
+                  <div className="relative">
+                    <span className="absolute left-4 top-3.5 text-gray-500">$</span>
+                    <input type="number" value={formData.retailValue}
+                      onChange={(e) => setFormData({ ...formData, retailValue: e.target.value })}
+                      placeholder="16,000"
+                      className="w-full pl-8 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-curb-orange text-gray-900" />
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">What would this car list for on your lot?</p>
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Description (Optional)
+                    Reserve Price (minimum acceptable sale price)
                   </label>
-                  <textarea
-                    value={formData.description}
-                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    placeholder="Add any additional details..."
-                    rows={3}
-                    maxLength={500}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-curb-orange"
-                  />
-                  <p className="text-sm text-gray-500 mt-1">{formData.description.length}/500 characters</p>
+                  <div className="relative">
+                    <span className="absolute left-4 top-3.5 text-gray-500">$</span>
+                    <input type="number" value={formData.reservePrice}
+                      onChange={(e) => setFormData({ ...formData, reservePrice: e.target.value })}
+                      placeholder="12,000"
+                      className="w-full pl-8 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-curb-orange text-gray-900" />
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">Hidden from buyers. The auction only completes if bidding reaches this amount.</p>
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Minimum Bid (Reserve Price)
+                    Estimated Repair / Safety Work Cost
                   </label>
-                  <input
-                    type="number"
-                    value={formData.minimumBid}
-                    onChange={(e) => setFormData({ ...formData, minimumBid: e.target.value })}
-                    placeholder="Enter minimum acceptable bid"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-curb-orange"
-                  />
-                  <p className="text-sm text-gray-500 mt-1">
-                    The auction will only complete if bidding reaches this amount
-                  </p>
+                  <div className="relative">
+                    <span className="absolute left-4 top-3.5 text-gray-500">$</span>
+                    <input type="number" value={formData.repairEstimate}
+                      onChange={(e) => setFormData({ ...formData, repairEstimate: e.target.value })}
+                      placeholder="1,500"
+                      className="w-full pl-8 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-curb-orange text-gray-900" />
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">What your service dept will charge for safety / reconditioning work.</p>
                 </div>
 
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <h4 className="font-semibold text-blue-800 mb-2">Auction Duration</h4>
-                  <p className="text-sm text-blue-700">
-                    All auctions run for 3 days from the time of publishing
-                  </p>
+                  <h4 className="font-semibold text-blue-800 mb-2">Fee Structure</h4>
+                  <p className="text-sm text-blue-700">$100 listing fee (charged when auction goes live) + buyer pays 3% premium on top of sale price.</p>
                 </div>
               </div>
             </div>
           )}
 
-          {/* Step 7: Review */}
+          {/* Step 5: Review */}
           {currentStep === 'review' && (
             <div>
-              <h2 className="text-2xl font-bold text-curb-navy mb-6">Step 7: Review & Publish</h2>
+              <h2 className="text-2xl font-bold text-curb-navy mb-6">Review & Submit</h2>
               <div className="space-y-6">
                 <div className="bg-gray-50 rounded-lg p-6">
-                  <h3 className="font-semibold text-curb-navy mb-4">Vehicle Information</h3>
+                  <h3 className="font-semibold text-curb-navy mb-4">Vehicle</h3>
                   <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <p className="text-gray-600">Vehicle</p>
-                      <p className="font-semibold">{formData.year} {formData.make} {formData.model} {formData.trim}</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-600">VIN</p>
-                      <p className="font-semibold">{formData.vin}</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-600">Mileage</p>
-                      <p className="font-semibold">{formData.mileage} miles</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-600">Title Status</p>
-                      <p className="font-semibold">{formData.titleStatus}</p>
-                    </div>
+                    <div><p className="text-gray-600">Vehicle</p><p className="font-semibold">{formData.year} {formData.make} {formData.model} {formData.trim}</p></div>
+                    <div><p className="text-gray-600">VIN</p><p className="font-semibold font-mono text-xs">{formData.vin}</p></div>
+                    <div><p className="text-gray-600">Mileage</p><p className="font-semibold">{parseInt(formData.mileage).toLocaleString()} miles</p></div>
+                    <div><p className="text-gray-600">Photos</p><p className="font-semibold">{formData.photos.length} uploaded</p></div>
                   </div>
                 </div>
 
                 <div className="bg-gray-50 rounded-lg p-6">
-                  <h3 className="font-semibold text-curb-navy mb-4">Auction Details</h3>
+                  <h3 className="font-semibold text-curb-navy mb-4">Pricing</h3>
                   <div className="space-y-3 text-sm">
+                    {formData.retailValue && (
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Estimated Retail Value</span>
+                        <span className="font-semibold">{fmt(formData.retailValue)}</span>
+                      </div>
+                    )}
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Minimum Bid</span>
-                      <span className="font-semibold">${formData.minimumBid}</span>
+                      <span className="text-gray-600">Reserve Price</span>
+                      <span className="font-semibold">{fmt(formData.reservePrice)}</span>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Total Repair Cost</span>
-                      <span className="font-semibold">${totalRepairCost.toLocaleString()}</span>
-                    </div>
-                    <div className="flex justify-between">
+                    {formData.repairEstimate && (
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Estimated Repairs</span>
+                        <span className="font-semibold">{fmt(formData.repairEstimate)}</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between border-t pt-2">
                       <span className="text-gray-600">Listing Fee</span>
                       <span className="font-semibold">$100</span>
                     </div>
@@ -483,35 +483,35 @@ export default function ListVehicle() {
                 </div>
 
                 <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                  <h4 className="font-semibold text-yellow-800 mb-2">⚠️ Before Publishing</h4>
+                  <h4 className="font-semibold text-yellow-800 mb-2">What happens next</h4>
                   <ul className="text-sm text-yellow-700 space-y-1">
-                    <li>• Your listing will be reviewed and published within 24 hours</li>
-                    <li>• The $100 listing fee will be charged when published</li>
-                    <li>• You'll be notified when your auction goes live</li>
+                    <li>1. Our team reviews your listing (typically within 24 hours)</li>
+                    <li>2. Once approved, your 3-day auction goes live</li>
+                    <li>3. The $100 listing fee is charged when the auction starts</li>
+                    <li>4. You&apos;ll be notified of bids and when the auction ends</li>
                   </ul>
                 </div>
 
-                <button className="w-full py-4 bg-curb-orange text-white rounded-lg font-bold text-lg hover:bg-orange-600 transition">
-                  Submit for Review ($100)
+                <button
+                  onClick={handleSubmit}
+                  disabled={submitting}
+                  className="w-full py-4 bg-curb-orange text-white rounded-lg font-bold text-lg hover:bg-orange-600 transition disabled:opacity-50"
+                >
+                  {uploadingPhotos ? 'Uploading photos...' : submitting ? 'Submitting...' : 'Submit for Review'}
                 </button>
               </div>
             </div>
           )}
 
-          {/* Navigation Buttons */}
+          {/* Navigation */}
           <div className="flex justify-between mt-8 pt-8 border-t border-gray-200">
-            <button
-              onClick={prevStep}
-              disabled={currentStepIndex === 0}
-              className="px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition disabled:opacity-50 disabled:cursor-not-allowed font-medium"
-            >
+            <button onClick={prevStep} disabled={currentStepIndex === 0}
+              className="px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition disabled:opacity-50 disabled:cursor-not-allowed font-medium">
               ← Previous
             </button>
             {currentStep !== 'review' && (
-              <button
-                onClick={nextStep}
-                className="px-6 py-3 bg-curb-orange text-white rounded-lg hover:bg-orange-600 transition font-medium"
-              >
+              <button onClick={nextStep}
+                className="px-6 py-3 bg-curb-orange text-white rounded-lg hover:bg-orange-600 transition font-medium">
                 Next →
               </button>
             )}
