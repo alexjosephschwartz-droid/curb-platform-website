@@ -84,6 +84,14 @@ export default function ExampleAuctionPage() {
   const [estRegZipDifferent, setEstRegZipDifferent] = useState(false);
   const [estRegZip, setEstRegZip] = useState('');
 
+  // Proxy bidding state
+  const [proxyMode, setProxyMode] = useState<'max-bid' | 'max-budget'>('max-bid');
+  const [proxyMaxBid, setProxyMaxBid] = useState(20000);
+  const [proxyMaxBidInput, setProxyMaxBidInput] = useState('20,000');
+  const [proxyBudget, setProxyBudget] = useState(25000);
+  const [proxyBudgetInput, setProxyBudgetInput] = useState('25,000');
+  const [proxyOutcome, setProxyOutcome] = useState<'bidding' | 'won' | 'outbid'>('bidding');
+
   // Simple CA ZIP detection (900xx–961xx)
   const isCaliforniaZip = (zip: string) => {
     const n = parseInt(zip.slice(0, 3), 10);
@@ -209,6 +217,134 @@ export default function ExampleAuctionPage() {
     if (estDelivery === 'ship' && !isValidZip(estDestZip)) return false;
     if (estRegZipDifferent && !isValidZip(estRegZip)) return false;
     return true;
+  };
+
+  // --- Proxy bidding helpers ---
+
+  const getBidIncrement = (amount: number) => {
+    if (amount < 5000) return 100;
+    if (amount < 25000) return 250;
+    return 500;
+  };
+
+  const roundDownToIncrement = (amount: number) => {
+    if (amount <= 0) return 0;
+    const inc = getBidIncrement(amount);
+    return Math.floor(amount / inc) * inc;
+  };
+
+  const handleProxyMaxBidChange = (raw: string) => {
+    const digits = raw.replace(/[^0-9]/g, '');
+    const num = parseInt(digits, 10) || 0;
+    setProxyMaxBid(num);
+    setProxyMaxBidInput(num > 0 ? num.toLocaleString() : '');
+  };
+
+  const handleProxyBudgetChange = (raw: string) => {
+    const digits = raw.replace(/[^0-9]/g, '');
+    const num = parseInt(digits, 10) || 0;
+    setProxyBudget(num);
+    setProxyBudgetInput(num > 0 ? num.toLocaleString() : '');
+  };
+
+  // Compute all-in cost for a hypothetical vehicle bid using the current scenario
+  const computeAllInCost = (bid: number) => {
+    const prem = Math.round(bid * 0.03);
+    const sub = bid + REPAIRS_TOTAL + prem;
+
+    let isPickup: boolean, destIsCA: boolean, regIsCA: boolean, regIsNV: boolean;
+    let destZipVal: string, regZipVal: string;
+
+    if (customMode) {
+      isPickup = estDelivery === 'pickup';
+      destZipVal = isPickup ? estZip.trim() : estDestZip.trim();
+      regZipVal = estRegZipDifferent ? estRegZip.trim() : destZipVal;
+      destIsCA = isCaliforniaZip(destZipVal);
+      regIsCA = isCaliforniaZip(regZipVal);
+      regIsNV = isNevadaZip(regZipVal);
+    } else {
+      const s = DEMO_SCENARIOS.find(d => d.key === activeScenario)!;
+      isPickup = s.delivery === 'pickup';
+      destZipVal = s.destZip;
+      regZipVal = s.regZip;
+      destIsCA = isCaliforniaZip(s.destZip);
+      regIsCA = isCaliforniaZip(s.regZip);
+      regIsNV = isNevadaZip(s.regZip);
+    }
+
+    let knownCost = sub;
+    const pendingLabels: string[] = [];
+    const breakdown: { label: string; value: string; amount: number | null; note?: string }[] = [
+      { label: 'Vehicle bid', value: `$${bid.toLocaleString()}`, amount: bid },
+      { label: 'Required repairs', value: `$${REPAIRS_TOTAL.toLocaleString()}`, amount: REPAIRS_TOTAL },
+      { label: 'Buyer premium (3%)', value: `$${prem.toLocaleString()}`, amount: prem },
+    ];
+
+    // CA sales tax
+    if (isPickup && destIsCA) {
+      const tax = Math.round(sub * SAMPLE_CA_TAX_RATE);
+      knownCost += tax;
+      breakdown.push({ label: 'Est. CA sales tax (~9.5%)', value: `~$${tax.toLocaleString()}`, amount: tax, note: 'Sample estimate' });
+    } else if (!isPickup && !destIsCA) {
+      breakdown.push({ label: 'CA sales tax', value: 'Likely $0', amount: 0 });
+    } else if (!isPickup && destIsCA) {
+      const tax = Math.round(sub * SAMPLE_CA_TAX_RATE);
+      knownCost += tax;
+      breakdown.push({ label: 'Est. CA sales tax (~9.5%)', value: `~$${tax.toLocaleString()}`, amount: tax, note: 'Sample estimate' });
+    } else {
+      pendingLabels.push('CA sales tax');
+      breakdown.push({ label: 'CA sales tax', value: 'Dealer review required', amount: null });
+    }
+
+    // Out-of-state use tax (payable separately in buyer's state)
+    if (!regIsCA && regZipVal.length === 5) {
+      if (regIsNV) {
+        const nvTax = Math.round(sub * SAMPLE_NV_TAX_RATE);
+        knownCost += nvTax;
+        breakdown.push({ label: 'Est. NV use tax (~8.25%)', value: `~$${nvTax.toLocaleString()}`, amount: nvTax, note: 'Payable to NV · Sample estimate' });
+      } else {
+        pendingLabels.push('Registration-state tax');
+        breakdown.push({ label: 'Registration-state tax', value: 'Varies by state', amount: null });
+      }
+    }
+
+    // Title & registration
+    if (regIsCA) {
+      knownCost += SAMPLE_CA_REG;
+      breakdown.push({ label: 'Est. CA title & reg', value: `~$${SAMPLE_CA_REG}`, amount: SAMPLE_CA_REG, note: 'Sample estimate' });
+    } else if (regIsNV) {
+      knownCost += SAMPLE_NV_REG;
+      breakdown.push({ label: 'Est. NV title & reg', value: `~$${SAMPLE_NV_REG}`, amount: SAMPLE_NV_REG, note: 'Payable to NV DMV' });
+    } else if (regZipVal.length === 5) {
+      pendingLabels.push('Title & registration');
+      breakdown.push({ label: 'Title & registration', value: 'Varies by state', amount: null });
+    }
+
+    // Shipping (uses high end of range for budget safety)
+    if (!isPickup && destZipVal.length === 5) {
+      const destN = parseInt(destZipVal.slice(0, 3), 10);
+      let shipHigh = 1500, shipRange = '$800–$1,500';
+      if (destIsCA) { shipHigh = 600; shipRange = '$350–$600'; }
+      else if (destN >= 889 && destN <= 898) { shipHigh = 800; shipRange = '$500–$800'; }
+      else if (destN >= 850 && destN <= 870) { shipHigh = 800; shipRange = '$500–$800'; }
+      else if (destN >= 970 && destN <= 979) { shipHigh = 900; shipRange = '$600–$900'; }
+      else if (destN >= 750 && destN <= 799) { shipHigh = 1200; shipRange = '$800–$1,200'; }
+      else if (destN >= 100 && destN <= 149) { shipHigh = 1800; shipRange = '$1,200–$1,800'; }
+      knownCost += shipHigh;
+      breakdown.push({ label: 'Est. shipping (high end)', value: `~$${shipHigh.toLocaleString()}`, amount: shipHigh, note: `Range: ${shipRange}` });
+    }
+
+    return { knownCost, pendingLabels, breakdown, allKnown: pendingLabels.length === 0 };
+  };
+
+  // Binary search: find the highest vehicle bid where all-in cost ≤ budget
+  const computeMaxBidFromBudget = (budget: number) => {
+    let lo = 0, hi = budget;
+    for (let i = 0; i < 50; i++) {
+      const mid = Math.floor((lo + hi) / 2);
+      if (computeAllInCost(mid).knownCost <= budget) lo = mid; else hi = mid;
+    }
+    return lo;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -614,6 +750,306 @@ export default function ExampleAuctionPage() {
                         </div>
                       </div>
                     </div>
+                  );
+                })()}
+              </div>
+
+              {/* Proxy Bidding Demo */}
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                <div className="flex items-center gap-2 mb-1">
+                  <div className="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center">
+                    <svg className="w-4 h-4 text-indigo-600" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor"><path d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                  </div>
+                  <h2 className="text-xl font-bold text-curb-navy">Proxy Bidding</h2>
+                  <span className="text-xs bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full font-medium ml-auto">Demo</span>
+                </div>
+                <p className="text-sm text-gray-500 mb-5">Set a private maximum and Curb bids on your behalf, raising the public bid only as needed in valid increments. No one sees your max.</p>
+
+                {/* Mode selector */}
+                <div className="flex gap-2 mb-4">
+                  <button onClick={() => setProxyMode('max-bid')} className={`flex-1 px-4 py-2.5 rounded-lg text-sm font-semibold transition ${proxyMode === 'max-bid' ? 'bg-indigo-600 text-white shadow-sm' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
+                    Max Vehicle Bid
+                  </button>
+                  <button onClick={() => setProxyMode('max-budget')} className={`flex-1 px-4 py-2.5 rounded-lg text-sm font-semibold transition ${proxyMode === 'max-budget' ? 'bg-indigo-600 text-white shadow-sm' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
+                    Max Total Budget
+                  </button>
+                </div>
+
+                {/* Input */}
+                {proxyMode === 'max-bid' ? (
+                  <div className="mb-4">
+                    <label className="text-xs text-gray-500 mb-1 block">Maximum vehicle bid (private)</label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-lg font-bold text-indigo-600">$</span>
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        value={proxyMaxBidInput}
+                        onChange={(e) => handleProxyMaxBidChange(e.target.value)}
+                        onBlur={() => setProxyMaxBidInput(proxyMaxBid > 0 ? proxyMaxBid.toLocaleString() : '')}
+                        className="w-full pl-8 pr-4 py-2.5 text-lg font-bold text-indigo-600 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition"
+                      />
+                    </div>
+                    <p className="text-xs text-gray-400 mt-1">Bid increment at this level: ${getBidIncrement(proxyMaxBid).toLocaleString()}</p>
+                  </div>
+                ) : (
+                  <div className="mb-4">
+                    <label className="text-xs text-gray-500 mb-1 block">Maximum total budget — all costs included (private)</label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-lg font-bold text-indigo-600">$</span>
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        value={proxyBudgetInput}
+                        onChange={(e) => handleProxyBudgetChange(e.target.value)}
+                        onBlur={() => setProxyBudgetInput(proxyBudget > 0 ? proxyBudget.toLocaleString() : '')}
+                        className="w-full pl-8 pr-4 py-2.5 text-lg font-bold text-indigo-600 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition"
+                      />
+                    </div>
+                    <p className="text-xs text-gray-400 mt-1">Curb works backward from your budget to find the highest allowable vehicle bid</p>
+                  </div>
+                )}
+
+                {/* Computed result */}
+                {(() => {
+                  const effectiveMaxRaw = proxyMode === 'max-bid' ? proxyMaxBid : computeMaxBidFromBudget(proxyBudget);
+                  const effectiveMax = roundDownToIncrement(effectiveMaxRaw);
+                  const inc = getBidIncrement(effectiveMax);
+                  const nextEligibleBid = bidAmount + inc; // next bid above current
+                  const belowMinimum = effectiveMax < nextEligibleBid;
+                  const allIn = computeAllInCost(effectiveMax);
+
+                  // Demo bidding timeline
+                  const bid1 = roundDownToIncrement(effectiveMax * 0.85);
+                  const bid2 = bid1 + inc;
+                  const bid3 = bid2 + inc;
+                  const bid4 = bid3 + inc;
+                  const winBid = effectiveMax - inc;
+                  const winAllIn = computeAllInCost(winBid);
+
+                  return (
+                    <>
+                      {/* Max budget breakdown */}
+                      {proxyMode === 'max-budget' && effectiveMax > 0 && (
+                        <div className="bg-indigo-50 border border-indigo-200 rounded-xl p-4 mb-4">
+                          <p className="text-xs font-bold text-indigo-800 mb-2">Budget breakdown — working backward from ${proxyBudget.toLocaleString()}</p>
+                          <div className="space-y-1.5">
+                            {allIn.breakdown.map((item, i) => (
+                              <div key={i} className="flex justify-between text-xs">
+                                <span className={`${item.amount === null ? 'text-amber-700' : 'text-gray-600'}`}>
+                                  {item.label}
+                                  {item.note && <span className="text-gray-400 ml-1">· {item.note}</span>}
+                                </span>
+                                <span className={`font-medium ${item.amount === null ? 'text-amber-600' : 'text-indigo-800'}`}>{item.value}</span>
+                              </div>
+                            ))}
+                            <div className="border-t border-indigo-200 pt-1.5 flex justify-between text-xs">
+                              <span className="font-bold text-indigo-800">{allIn.allKnown ? 'Est. all-in total at max bid' : 'Est. known costs at max bid'}</span>
+                              <span className="font-bold text-indigo-800">~${allIn.knownCost.toLocaleString()}</span>
+                            </div>
+                            {!allIn.allKnown && (
+                              <p className="text-xs text-amber-600">Pending: {allIn.pendingLabels.join(', ')} — not deducted from budget</p>
+                            )}
+                          </div>
+                          <div className="mt-3 bg-white rounded-lg p-3">
+                            <div className="flex justify-between items-baseline">
+                              <span className="text-xs text-gray-600">Highest allowable vehicle bid</span>
+                              <span className="text-lg font-bold text-indigo-700">${effectiveMax.toLocaleString()}</span>
+                            </div>
+                            <p className="text-xs text-gray-400 mt-0.5">Rounded down to ${inc} increment · Leaves ~${(proxyBudget - allIn.knownCost).toLocaleString()} margin within budget</p>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Below-minimum warning */}
+                      {belowMinimum && effectiveMax >= 0 && (
+                        <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-4">
+                          <p className="text-xs font-semibold text-red-800 mb-1">Budget too low for the next eligible bid</p>
+                          <p className="text-xs text-red-700">The current bid is ${bidAmount.toLocaleString()}. The next valid bid is ${nextEligibleBid.toLocaleString()} (${inc} increment). {proxyMode === 'max-budget' ? `Your $${proxyBudget.toLocaleString()} budget supports a max vehicle bid of $${effectiveMax.toLocaleString()}, which is below the next eligible bid.` : `Your max of $${proxyMaxBid.toLocaleString()} rounds to $${effectiveMax.toLocaleString()}, which is below the next eligible bid.`}</p>
+                        </div>
+                      )}
+
+                      {/* Confirmation summary */}
+                      {!belowMinimum && effectiveMax > 0 && (
+                        <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 mb-4">
+                          <p className="text-xs font-bold text-curb-navy mb-2">Proxy bid confirmation</p>
+                          <div className="grid grid-cols-2 gap-3">
+                            <div className="bg-white rounded-lg p-3 text-center">
+                              <p className="text-xs text-gray-500 mb-0.5">Max vehicle bid</p>
+                              <p className="text-xl font-bold text-indigo-700">${effectiveMax.toLocaleString()}</p>
+                              <p className="text-xs text-gray-400">Private · ${inc} increments</p>
+                            </div>
+                            <div className="bg-white rounded-lg p-3 text-center">
+                              <p className="text-xs text-gray-500 mb-0.5">Est. all-in at max</p>
+                              <p className="text-xl font-bold text-curb-navy">~${allIn.knownCost.toLocaleString()}</p>
+                              <p className="text-xs text-gray-400">{allIn.allKnown ? 'All charges estimated' : `${allIn.pendingLabels.length} charge${allIn.pendingLabels.length > 1 ? 's' : ''} pending`}</p>
+                            </div>
+                          </div>
+                          {!allIn.allKnown && (
+                            <p className="text-xs text-amber-600 mt-2">Pending charges not included in all-in estimate: {allIn.pendingLabels.join(', ')}</p>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Demo outcomes */}
+                      {!belowMinimum && effectiveMax > 0 && (
+                        <div>
+                          <p className="text-xs font-bold text-curb-navy mb-2">Demo — What happens during the auction</p>
+                          <div className="flex gap-1 mb-3">
+                            {([
+                              { key: 'bidding' as const, label: 'Curb bids for you' },
+                              { key: 'won' as const, label: 'You win below max' },
+                              { key: 'outbid' as const, label: 'Outbid at max' },
+                            ]).map(o => (
+                              <button
+                                key={o.key}
+                                onClick={() => setProxyOutcome(o.key)}
+                                className={`flex-1 px-2 py-1.5 rounded-lg text-xs font-semibold transition ${proxyOutcome === o.key ? 'bg-curb-navy text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+                              >
+                                {o.label}
+                              </button>
+                            ))}
+                          </div>
+
+                          {proxyOutcome === 'bidding' && (
+                            <div className="bg-indigo-50 rounded-xl p-4 space-y-2">
+                              <div className="space-y-1.5">
+                                {[
+                                  { who: 'Other buyer', amount: bid1, type: 'other' as const },
+                                  { who: 'Curb (you)', amount: bid2, type: 'you' as const },
+                                  { who: 'Other buyer', amount: bid3, type: 'other' as const },
+                                  { who: 'Curb (you)', amount: bid4, type: 'you' as const },
+                                ].map((entry, i) => (
+                                  <div key={i} className={`flex items-center justify-between text-xs px-3 py-2 rounded-lg ${entry.type === 'you' ? 'bg-indigo-100 border border-indigo-200' : 'bg-white border border-gray-100'}`}>
+                                    <div className="flex items-center gap-2">
+                                      {entry.type === 'you' ? (
+                                        <span className="w-5 h-5 bg-indigo-600 rounded-full flex items-center justify-center text-white text-xs">⚡</span>
+                                      ) : (
+                                        <span className="w-5 h-5 bg-gray-300 rounded-full flex items-center justify-center text-white text-xs">?</span>
+                                      )}
+                                      <span className={entry.type === 'you' ? 'font-semibold text-indigo-800' : 'text-gray-600'}>{entry.who}</span>
+                                    </div>
+                                    <span className={`font-bold ${entry.type === 'you' ? 'text-indigo-700' : 'text-gray-700'}`}>${entry.amount.toLocaleString()}</span>
+                                  </div>
+                                ))}
+                              </div>
+                              <div className="bg-white rounded-lg p-3 border border-indigo-100 mt-2">
+                                <div className="flex justify-between items-center text-xs">
+                                  <span className="text-gray-600">Current public bid</span>
+                                  <span className="font-bold text-indigo-700">${bid4.toLocaleString()}</span>
+                                </div>
+                                <div className="flex justify-between items-center text-xs mt-1">
+                                  <span className="text-gray-600">Your private max</span>
+                                  <span className="font-bold text-curb-navy">${effectiveMax.toLocaleString()}</span>
+                                </div>
+                                <div className="flex justify-between items-center text-xs mt-1">
+                                  <span className="text-gray-600">Remaining headroom</span>
+                                  <span className="font-bold text-green-600">${(effectiveMax - bid4).toLocaleString()}</span>
+                                </div>
+                                <p className="text-xs text-indigo-600 font-medium mt-2">Curb will keep bidding up to ${effectiveMax.toLocaleString()} in ${inc.toLocaleString()} increments.</p>
+                              </div>
+                            </div>
+                          )}
+
+                          {proxyOutcome === 'won' && (
+                            <div className="bg-green-50 rounded-xl p-4 space-y-2">
+                              <div className="space-y-1.5">
+                                {[
+                                  { who: 'Other buyer', amount: winBid - inc, type: 'other' as const },
+                                  { who: 'Curb (you)', amount: winBid, type: 'you' as const },
+                                  { who: 'No higher bids', amount: 0, type: 'end' as const },
+                                ].map((entry, i) => (
+                                  <div key={i} className={`flex items-center justify-between text-xs px-3 py-2 rounded-lg ${entry.type === 'you' ? 'bg-green-100 border border-green-200' : entry.type === 'end' ? 'bg-green-200/50 border border-green-200' : 'bg-white border border-gray-100'}`}>
+                                    <div className="flex items-center gap-2">
+                                      {entry.type === 'you' ? (
+                                        <span className="w-5 h-5 bg-green-600 rounded-full flex items-center justify-center text-white text-xs">✓</span>
+                                      ) : entry.type === 'end' ? (
+                                        <span className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center text-white text-xs">🏆</span>
+                                      ) : (
+                                        <span className="w-5 h-5 bg-gray-300 rounded-full flex items-center justify-center text-white text-xs">?</span>
+                                      )}
+                                      <span className={entry.type === 'you' ? 'font-semibold text-green-800' : entry.type === 'end' ? 'font-semibold text-green-700' : 'text-gray-600'}>{entry.who}</span>
+                                    </div>
+                                    {entry.amount > 0 ? (
+                                      <span className={`font-bold ${entry.type === 'you' ? 'text-green-700' : 'text-gray-700'}`}>${entry.amount.toLocaleString()}</span>
+                                    ) : (
+                                      <span className="text-xs text-green-600 font-medium">Auction ended</span>
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+                              <div className="bg-white rounded-lg p-3 border border-green-200 mt-2">
+                                <div className="flex justify-between items-center text-xs">
+                                  <span className="text-gray-600">Winning bid</span>
+                                  <span className="font-bold text-green-700">${winBid.toLocaleString()}</span>
+                                </div>
+                                <div className="flex justify-between items-center text-xs mt-1">
+                                  <span className="text-gray-600">Your private max was</span>
+                                  <span className="font-bold text-curb-navy">${effectiveMax.toLocaleString()}</span>
+                                </div>
+                                <div className="flex justify-between items-center text-xs mt-1">
+                                  <span className="text-gray-600">Saved vs. max bid</span>
+                                  <span className="font-bold text-green-600">${(effectiveMax - winBid).toLocaleString()}</span>
+                                </div>
+                                <div className="border-t border-green-100 mt-2 pt-2 flex justify-between items-center text-xs">
+                                  <span className="text-gray-600">Est. all-in at winning bid</span>
+                                  <span className="font-bold text-curb-navy">~${winAllIn.knownCost.toLocaleString()}</span>
+                                </div>
+                                {!winAllIn.allKnown && (
+                                  <p className="text-xs text-amber-600 mt-1">Pending: {winAllIn.pendingLabels.join(', ')}</p>
+                                )}
+                                <p className="text-xs text-green-600 font-medium mt-2">You won below your max. Curb only bid what was needed.</p>
+                              </div>
+                            </div>
+                          )}
+
+                          {proxyOutcome === 'outbid' && (
+                            <div className="bg-red-50 rounded-xl p-4 space-y-2">
+                              <div className="space-y-1.5">
+                                {[
+                                  { who: 'Other buyer', amount: effectiveMax - inc, type: 'other' as const },
+                                  { who: 'Curb (you)', amount: effectiveMax, type: 'you' as const },
+                                  { who: 'Other buyer', amount: effectiveMax + inc, type: 'exceed' as const },
+                                ].map((entry, i) => (
+                                  <div key={i} className={`flex items-center justify-between text-xs px-3 py-2 rounded-lg ${entry.type === 'you' ? 'bg-amber-100 border border-amber-200' : entry.type === 'exceed' ? 'bg-red-100 border border-red-200' : 'bg-white border border-gray-100'}`}>
+                                    <div className="flex items-center gap-2">
+                                      {entry.type === 'you' ? (
+                                        <span className="w-5 h-5 bg-amber-500 rounded-full flex items-center justify-center text-white text-xs">⚡</span>
+                                      ) : entry.type === 'exceed' ? (
+                                        <span className="w-5 h-5 bg-red-500 rounded-full flex items-center justify-center text-white text-xs">✗</span>
+                                      ) : (
+                                        <span className="w-5 h-5 bg-gray-300 rounded-full flex items-center justify-center text-white text-xs">?</span>
+                                      )}
+                                      <span className={entry.type === 'you' ? 'font-semibold text-amber-800' : entry.type === 'exceed' ? 'font-semibold text-red-800' : 'text-gray-600'}>{entry.who}</span>
+                                      {entry.type === 'you' && <span className="text-xs text-amber-600">(your maximum)</span>}
+                                      {entry.type === 'exceed' && <span className="text-xs text-red-600">(exceeds your max)</span>}
+                                    </div>
+                                    <span className={`font-bold ${entry.type === 'exceed' ? 'text-red-700' : entry.type === 'you' ? 'text-amber-700' : 'text-gray-700'}`}>${entry.amount.toLocaleString()}</span>
+                                  </div>
+                                ))}
+                              </div>
+                              <div className="bg-white rounded-lg p-3 border border-red-200 mt-2">
+                                <div className="flex justify-between items-center text-xs">
+                                  <span className="text-gray-600">Your max was</span>
+                                  <span className="font-bold text-curb-navy">${effectiveMax.toLocaleString()}</span>
+                                </div>
+                                <div className="flex justify-between items-center text-xs mt-1">
+                                  <span className="text-gray-600">Winning bid</span>
+                                  <span className="font-bold text-red-700">${(effectiveMax + inc).toLocaleString()}</span>
+                                </div>
+                                <p className="text-xs text-red-600 font-medium mt-2">Curb couldn&apos;t bid higher. You&apos;re notified immediately — no charge, no obligation.</p>
+                                <p className="text-xs text-gray-500 mt-1">You can bid on other vehicles or raise your max on a future auction.</p>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Sample estimates disclaimer */}
+                      <p className="text-xs text-gray-400 mt-4 leading-relaxed">
+                        Tax, registration, and shipping figures are sample estimates for demonstration. The dealer confirms final charges before you fund escrow. Proxy bidding keeps your maximum private — only the minimum needed bid is shown publicly.
+                      </p>
+                    </>
                   );
                 })()}
               </div>
