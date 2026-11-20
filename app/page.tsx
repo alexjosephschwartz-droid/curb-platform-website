@@ -195,7 +195,7 @@ export default function Home() {
                   Skip the markup.<br />Buy at wholesale.
                 </h3>
                 <p className="text-lg text-gray-600 mb-8 max-w-md leading-relaxed">
-                  Access the same cars dealers buy at auction — with full inspections, repairs included, and dealer-direct payment. Save $3K–$5K on every purchase.
+                  Access the same cars dealers buy at auction — with full inspections and dealer-direct payment. See the required repairs you’ll pay for before you bid. Save $3,730+ on the BMW example.
                 </p>
                 <Link
                   href="/browse"
