@@ -24,7 +24,7 @@ export default function SupportChatbot() {
 
   const quickQuestions = [
     'How do I place a bid?',
-    'What is the escrow process?',
+    'How does the payment process work?',
     'How do I reset my password?',
     'When will my vehicle be delivered?',
   ];
@@ -34,8 +34,8 @@ export default function SupportChatbot() {
 
     if (lowerMessage.includes('bid') || lowerMessage.includes('how to bid')) {
       return "To place a bid: 1) Find a vehicle you like, 2) Click 'Place Bid', 3) Enter your bid amount (must be higher than current bid), 4) Confirm your bid. You'll receive notifications if you're outbid!";
-    } else if (lowerMessage.includes('escrow')) {
-      return "Our escrow process ensures safe transactions: 1) Winner deposits funds into escrow, 2) Dealer transfers title, 3) Buyer receives vehicle and confirms, 4) Funds released to dealer. Your money is protected until you receive the vehicle!";
+    } else if (lowerMessage.includes('payment') || lowerMessage.includes('deposit')) {
+      return "You pay the selling dealer directly: 1) Win the auction and pay a deposit to the dealer, 2) Dealer completes the agreed repairs and shares the repair order, 3) Inspect the car at pickup and pay the remaining balance, 4) Dealer transfers title. The dealer confirms deposit amount, due date, and refund terms before you bid.";
     } else if (lowerMessage.includes('password') || lowerMessage.includes('reset')) {
       return "To reset your password: 1) Go to the login page, 2) Click 'Forgot password?', 3) Enter your email, 4) Check your inbox for a reset link. Still having trouble? Contact support@curb.com";
     } else if (lowerMessage.includes('delivery') || lowerMessage.includes('shipping')) {

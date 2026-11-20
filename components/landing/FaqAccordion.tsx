@@ -9,11 +9,11 @@ const faqs = [
   },
   {
     q: 'What happens if I win an auction?',
-    a: 'Congratulations! You\'ll receive instructions to deposit funds into a secure Escrow.com account. The dealer will then complete the agreed-upon repairs, you\'ll review and approve the work, and then take delivery of your vehicle.',
+    a: 'Congratulations! You\'ll pay a deposit directly to the selling dealer. The dealer completes the agreed-upon repairs and shares the completed repair order. You inspect the car at pickup and pay the remaining balance directly to the dealer.',
   },
   {
-    q: 'How does escrow protection work?',
-    a: 'All transactions are secured through Escrow.com. Your funds are held safely until you approve the completed repairs and take delivery. This protects both buyers and dealers throughout the entire transaction.',
+    q: 'How does the payment process work?',
+    a: 'You pay the selling dealer directly. After winning, you pay a deposit credited toward the purchase price. The dealer completes repairs and shares the repair order. You inspect the car and pay the remaining balance at pickup. The dealer confirms the deposit amount, due date, and refund terms before you bid.',
   },
   {
     q: 'Can I return the car after purchase?',

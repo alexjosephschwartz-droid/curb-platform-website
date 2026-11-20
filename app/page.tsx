@@ -45,7 +45,7 @@ export default function Home() {
                   <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
                     <svg className="w-4 h-4 text-green-600" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" viewBox="0 0 24 24" stroke="currentColor"><path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
                   </div>
-                  <span className="text-gray-700 font-medium">Escrow protected</span>
+                  <span className="text-gray-700 font-medium">Pay the dealer directly</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
@@ -160,11 +160,11 @@ export default function Home() {
           <div className="grid md:grid-cols-5 gap-8 relative">
             <div className="hidden md:block absolute left-[10%] right-[10%] h-0.5 bg-gradient-to-r from-curb-orange via-curb-orange to-curb-navy" style={{ top: '2rem' }}></div>
             {[
-              { number: 1, title: 'Dealer Lists Car', desc: 'VIN, photos, professional inspection & repair quote' },
-              { number: 2, title: 'Buyers Browse & Bid', desc: 'Transparent 3-day auction with real-time updates' },
-              { number: 3, title: 'Winner Pays via Escrow', desc: 'Secure payment through Escrow.com protection' },
-              { number: 4, title: 'Dealer Repairs Car', desc: 'Buyer reviews and approves completed repairs' },
-              { number: 5, title: 'Delivery & Release', desc: 'Funds released, both parties rate the experience' },
+              { number: 1, title: 'Dealer Lists the Car', desc: 'VIN, photos, professional inspection & repair quote' },
+              { number: 2, title: 'Review the Price & Bid', desc: 'Transparent 3-day auction with real-time updates' },
+              { number: 3, title: 'Win & Pay a Deposit', desc: 'Pay the selling dealer directly — deposit credited toward the purchase price' },
+              { number: 4, title: 'Review Completed Repairs', desc: 'Dealer shares the completed repair order before pickup' },
+              { number: 5, title: 'Inspect & Pay the Balance', desc: 'Inspect the car and pay the remaining balance directly to the dealer' },
             ].map((step, i) => (
               <ScrollReveal key={step.number} delay={i * 100}>
                 <div className="relative z-10 group">
@@ -195,7 +195,7 @@ export default function Home() {
                   Skip the markup.<br />Buy at wholesale.
                 </h3>
                 <p className="text-lg text-gray-600 mb-8 max-w-md leading-relaxed">
-                  Access the same cars dealers buy at auction — with full inspections, repairs included, and escrow protection. Save $3K–$5K on every purchase.
+                  Access the same cars dealers buy at auction — with full inspections, repairs included, and dealer-direct payment. Save $3K–$5K on every purchase.
                 </p>
                 <Link
                   href="/browse"
@@ -277,8 +277,8 @@ export default function Home() {
                 ),
               },
               {
-                title: 'Escrow Protection',
-                desc: 'Secure payment through Escrow.com ensures buyer protection throughout the process',
+                title: 'Dealer-Direct Payment',
+                desc: 'Pay the selling dealer directly. Review completed repairs before paying the balance.',
                 icon: (
                   <svg className="w-6 h-6 text-curb-orange" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
                     <path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
@@ -348,7 +348,7 @@ export default function Home() {
                     <p className="text-sm text-gray-500 mb-1">Subtotal (bid + repairs + fee)</p>
                     <p className="text-3xl font-extrabold text-curb-orange">$20,270</p>
                   </div>
-                  <p className="text-sm text-gray-500 leading-relaxed">Direct from dealer. Inspected, repaired, escrow-protected. <strong className="text-curb-navy">Save $3,730+</strong> before taxes &amp; registration.</p>
+                  <p className="text-sm text-gray-500 leading-relaxed">Direct from dealer. Inspected, repaired, dealer-direct payment. <strong className="text-curb-navy">Save $3,730+</strong> before taxes &amp; registration.</p>
                 </div>
               </div>
             </div>

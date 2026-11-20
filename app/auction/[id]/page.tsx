@@ -324,7 +324,7 @@ export default function AuctionDetailPage() {
                   </div>
                   <div className="flex gap-3">
                     <span className="flex-shrink-0 w-6 h-6 bg-curb-orange/10 text-curb-orange rounded-full flex items-center justify-center text-xs font-bold">2</span>
-                    <span>If you win, payment goes into secure escrow</span>
+                    <span>If you win, pay a deposit directly to the selling dealer</span>
                   </div>
                   <div className="flex gap-3">
                     <span className="flex-shrink-0 w-6 h-6 bg-curb-orange/10 text-curb-orange rounded-full flex items-center justify-center text-xs font-bold">3</span>

@@ -45,7 +45,7 @@ export default function AboutPage() {
           <h2 className="text-3xl font-bold text-curb-navy mb-8">The Curb Model</h2>
           <div className="space-y-6 text-lg text-gray-700 leading-relaxed">
             <p>
-              Curb lets dealers list those same wholesale trade-ins directly to consumers through transparent 3-day auctions. Every listing includes a professional inspection, a repair quote, and full condition disclosure. The winning buyer pays through escrow, the dealer completes the agreed-upon repairs, and the car is delivered &mdash; inspected, repaired, and protected.
+              Curb lets dealers list those same wholesale trade-ins directly to consumers through transparent 3-day auctions. Every listing includes a professional inspection, a repair quote, and full condition disclosure. The winning buyer pays a deposit directly to the dealer, the dealer completes the agreed-upon repairs, and the buyer inspects the car and pays the balance &mdash; inspected, repaired, and protected.
             </p>
             <p>
               Dealers earn more than wholesale auction (plus service revenue on repairs). Buyers save thousands versus retail. Everyone sees the same information. No hidden fees, no &ldquo;as-is&rdquo; surprises.
@@ -63,7 +63,7 @@ export default function AboutPage() {
             </div>
             <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 text-center">
               <div className="text-3xl font-bold text-curb-orange mb-2">100%</div>
-              <div className="text-gray-600 text-sm">Escrow-protected transactions</div>
+              <div className="text-gray-600 text-sm">Dealer-direct transactions</div>
             </div>
           </div>
         </div>

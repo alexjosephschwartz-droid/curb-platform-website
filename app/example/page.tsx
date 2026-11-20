@@ -690,6 +690,24 @@ export default function ExampleAuctionPage() {
                                     </div>
                                   )}
 
+                                  {/* Deposit & balance — dealer-direct */}
+                                  {duePurchase.length > 0 && (
+                                    <div>
+                                      <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Deposit &amp; balance</p>
+                                      <div className="bg-blue-50 rounded-lg p-3 space-y-1.5">
+                                        <div className="flex justify-between text-xs">
+                                          <span className="text-gray-600">Sample deposit paid to dealer</span>
+                                          <span className="font-semibold text-green-700">−$500</span>
+                                        </div>
+                                        <div className="border-t border-blue-200 pt-1.5 flex justify-between text-xs">
+                                          <span className="font-bold text-curb-navy">{estDelivery === 'pickup' ? 'Remaining balance due at pickup' : 'Remaining balance — payment and delivery terms confirmed by the selling dealer'}</span>
+                                          <span className="font-bold text-curb-navy">${(duePurchase.reduce((s, l) => s + (l.amount ?? 0), 0) - 500).toLocaleString()}</span>
+                                        </div>
+                                        <p className="text-xs text-gray-400 mt-1">The selling dealer will confirm the deposit amount, due date, and refund terms before you bid.</p>
+                                      </div>
+                                    </div>
+                                  )}
+
                                   {/* Paid separately */}
                                   {paidSeparately.length > 0 && (
                                     <div>
@@ -735,9 +753,9 @@ export default function ExampleAuctionPage() {
                                 {[
                                   { step: '1', title: 'You win the auction', desc: 'Your bid (or proxy bid) is the highest when the timer ends.' },
                                   { step: '2', title: 'Dealer confirms the sale', desc: 'The selling dealer reviews the winning bid and confirms.' },
-                                  { step: '3', title: 'You fund escrow', desc: 'Pay into a secure escrow account. Funds are held — not released to the dealer yet.' },
-                                  { step: '4', title: 'Dealer completes repairs', desc: 'All required repairs are finished. You review photos and approve the work.' },
-                                  { step: '5', title: 'Pickup or delivery', desc: 'Once you approve, escrow releases payment and you get your car.' },
+                                  { step: '3', title: 'Pay a deposit to the dealer', desc: 'The deposit is credited toward the purchase price. The dealer confirms the amount, due date, and refund terms before you bid.' },
+                                  { step: '4', title: 'Review the completed repairs', desc: 'The dealer shares the completed repair order. You review photos and approve the work.' },
+                                  { step: '5', title: 'Inspect and pay the balance', desc: 'Inspect the car at pickup and pay the remaining balance directly to the dealer.' },
                                 ].map((s) => (
                                   <div key={s.step} className="flex gap-3">
                                     <div className="w-6 h-6 bg-curb-orange/10 text-curb-orange rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">{s.step}</div>
@@ -758,8 +776,8 @@ export default function ExampleAuctionPage() {
                         {[
                           { icon: '🔍', text: 'Dealer-inspected condition report' },
                           { icon: '🔧', text: 'All repairs completed before delivery' },
-                          { icon: '🔒', text: 'Escrow-protected payment' },
-                          { icon: '✅', text: 'You approve before funds release' },
+                          { icon: '💳', text: 'Pay the selling dealer directly' },
+                          { icon: '✅', text: 'Review completed repairs before paying the balance' },
                         ].map((b) => (
                           <div key={b.text} className="flex items-center gap-2 text-xs text-gray-500">
                             <span>{b.icon}</span><span>{b.text}</span>
@@ -1044,6 +1062,24 @@ export default function ExampleAuctionPage() {
                                   </div>
                                 )}
 
+                                {/* Deposit & balance — dealer-direct */}
+                                {duePurchase.length > 0 && (
+                                  <div>
+                                    <p className="text-xs font-semibold text-blue-700 mb-1.5">Deposit &amp; balance</p>
+                                    <div className="bg-blue-50 rounded-lg p-3 space-y-1.5">
+                                      <div className="flex justify-between text-xs">
+                                        <span className="text-gray-600">Sample deposit paid to dealer</span>
+                                        <span className="font-semibold text-green-700">−$500</span>
+                                      </div>
+                                      <div className="border-t border-blue-200 pt-1.5 flex justify-between text-xs">
+                                        <span className="font-bold text-curb-navy">{estDelivery === 'pickup' ? 'Remaining balance due at pickup' : 'Remaining balance — payment and delivery terms confirmed by the selling dealer'}</span>
+                                        <span className="font-bold text-curb-navy">${(duePurchase.reduce((s, l) => s + (l.amount ?? 0), 0) - 500).toLocaleString()}</span>
+                                      </div>
+                                      <p className="text-xs text-gray-400 mt-1">The selling dealer will confirm the deposit amount, due date, and refund terms before you bid.</p>
+                                    </div>
+                                  </div>
+                                )}
+
                                 {paidSeparately.length > 0 && (
                                   <div>
                                     <p className="text-xs font-semibold text-amber-700 mb-1.5">Paid separately</p>
@@ -1161,7 +1197,7 @@ export default function ExampleAuctionPage() {
                   </div>
                   <h2 className="text-xl font-bold text-curb-navy">Required Repairs</h2>
                 </div>
-                <p className="text-sm text-gray-500 mb-4">The selling dealer completes these repairs after the auction ends and before you take delivery. You review and approve the work before escrow releases payment.</p>
+                <p className="text-sm text-gray-500 mb-4">The selling dealer completes these repairs after the auction ends and before you take delivery. You review and approve the work before paying the remaining balance.</p>
                 <div className="space-y-3">
                   {[
                     { item: 'Front brake pads + rotors', detail: 'OEM-equivalent parts, full replacement', cost: '$480' },
