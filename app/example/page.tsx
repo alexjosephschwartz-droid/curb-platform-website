@@ -628,51 +628,149 @@ export default function ExampleAuctionPage() {
                 </div>
                 <p className="text-sm text-gray-500 mb-5">After you win the auction, the dealer reviews your purchase and confirms the final numbers before you fund escrow. Here&apos;s what that looks like.</p>
 
-                <div className="bg-amber-50 border border-amber-200 rounded-xl p-5 space-y-4">
-                  <div className="flex items-center gap-2 mb-1">
-                    <svg className="w-4 h-4 text-amber-600" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor"><path d="M5 13l4 4L19 7" /></svg>
-                    <span className="text-sm font-bold text-amber-800">Dealer-Confirmed Purchase Summary</span>
-                    <span className="text-xs text-amber-500 ml-auto">Sample</span>
-                  </div>
+                {(() => {
+                  const est = canShowEstimate() ? getEstimate() : null;
 
-                  <div className="bg-white rounded-lg p-4 space-y-2.5">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">Winning bid</span>
-                      <span className="font-semibold text-curb-navy">${bidAmount.toLocaleString()}</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">Required repairs</span>
-                      <span className="font-semibold text-curb-navy">${REPAIRS_TOTAL.toLocaleString()}</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">Buyer premium (3%)</span>
-                      <span className="font-semibold text-curb-navy">${premium.toLocaleString()}</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">CA sales tax (confirmed 9.5%)</span>
-                      <span className="font-semibold text-curb-navy">${Math.round(subtotal * SAMPLE_CA_TAX_RATE).toLocaleString()}</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">CA title & registration</span>
-                      <span className="font-semibold text-curb-navy">${SAMPLE_CA_REG.toLocaleString()}</span>
-                    </div>
-                    <div className="border-t border-gray-200 pt-2.5 flex justify-between">
-                      <span className="font-bold text-curb-navy">Total due at purchase</span>
-                      <span className="font-bold text-curb-navy text-lg">${(subtotal + Math.round(subtotal * SAMPLE_CA_TAX_RATE) + SAMPLE_CA_REG).toLocaleString()}</span>
-                    </div>
-                  </div>
+                  // Determine scenario label for context
+                  const scenarioLabel = !est ? 'California Pickup' : est.isPickup
+                    ? (est.destIsCA ? 'California Pickup' : `Pickup in CA · Registering ${isNevadaZip(est.regZip) ? 'in NV' : 'out of state'}`)
+                    : (est.destIsCA ? 'Shipping within CA' : `Shipping to ${isNevadaZip(est.destZip) ? 'Nevada' : 'ZIP ' + est.destZip}`);
 
-                  <div className="bg-white rounded-lg p-4">
-                    <p className="text-xs font-semibold text-amber-800 mb-2">What you may owe separately</p>
-                    <p className="text-xs text-gray-600 leading-relaxed">
-                      If you register the vehicle in a different state, you may owe that state&apos;s sales/use tax and registration fees directly. These are not collected by the dealer through Curb. The dealer confirms what&apos;s included in the total above, and anything outside their scope is noted here so there are no surprises.
+                  // Build the "What you may owe separately" items
+                  const separateItems: { label: string; value: string; note?: string }[] = [];
+                  if (est) {
+                    // Shipping is always quoted separately
+                    if (est.shipLine && est.shipLine.amount === null && est.shipLine.value !== 'Enter destination ZIP') {
+                      separateItems.push({ label: est.shipLine.label, value: est.shipLine.value, note: est.shipLine.note });
+                    }
+                    // Out-of-state tax when it's informational (not included in purchase total collected by dealer)
+                    if (est.outOfStateTaxLine && est.outOfStateTaxLine.amount !== null) {
+                      separateItems.push({ label: est.outOfStateTaxLine.label, value: est.outOfStateTaxLine.value, note: est.outOfStateTaxLine.note });
+                    }
+                    if (est.outOfStateTaxLine && est.outOfStateTaxLine.amount === null) {
+                      separateItems.push({ label: est.outOfStateTaxLine.label, value: est.outOfStateTaxLine.value, note: est.outOfStateTaxLine.note });
+                    }
+                    // Registration when pending/unknown
+                    if (est.regLine.amount === null && est.regLine.value !== 'Enter ZIP above') {
+                      separateItems.push({ label: est.regLine.label, value: est.regLine.value, note: est.regLine.note });
+                    }
+                    // Tax when pending
+                    if (est.taxLine.amount === null) {
+                      separateItems.push({ label: est.taxLine.label, value: est.taxLine.value, note: est.taxLine.note });
+                    }
+                  }
+
+                  // NV buyer picking up in CA — special credit flag
+                  const nvPickupCaCredit = est && est.isPickup && est.destIsCA && !est.regIsCA && isNevadaZip(est.regZip);
+
+                  // Compute escrow total (what dealer collects at purchase)
+                  // Include: subtotal + CA tax (if confirmed) + registration (if confirmed/CA/NV)
+                  let escrowTotal = subtotal;
+                  let escrowPending = false;
+                  if (est) {
+                    if (est.taxLine.amount !== null) escrowTotal += est.taxLine.amount;
+                    else escrowPending = true;
+                    if (est.regLine.amount !== null) escrowTotal += est.regLine.amount;
+                    else escrowPending = true;
+                  } else {
+                    // Default CA scenario
+                    escrowTotal += Math.round(subtotal * SAMPLE_CA_TAX_RATE) + SAMPLE_CA_REG;
+                  }
+
+                  return (
+                  <div className="bg-amber-50 border border-amber-200 rounded-xl p-5 space-y-4">
+                    <div className="flex items-center gap-2 mb-1">
+                      <svg className="w-4 h-4 text-amber-600" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor"><path d="M5 13l4 4L19 7" /></svg>
+                      <span className="text-sm font-bold text-amber-800">Dealer-Confirmed Purchase Summary</span>
+                      <span className="text-xs text-amber-500 ml-auto">Sample · {scenarioLabel}</span>
+                    </div>
+
+                    <div className="bg-white rounded-lg p-4 space-y-2.5">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-600">Winning bid</span>
+                        <span className="font-semibold text-curb-navy">${bidAmount.toLocaleString()}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-600">Required repairs</span>
+                        <span className="font-semibold text-curb-navy">${REPAIRS_TOTAL.toLocaleString()}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-600">Buyer premium (3%)</span>
+                        <span className="font-semibold text-curb-navy">${premium.toLocaleString()}</span>
+                      </div>
+                      {/* Tax line — dynamic */}
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-600">{est ? est.taxLine.label : 'Est. CA sales tax (~9.5%)'} {est && est.taxLine.amount !== null && <span className="text-green-600 text-xs ml-1">✓ confirmed</span>}</span>
+                        <span className={`font-semibold ${est && est.taxLine.amount === null ? 'text-amber-600' : 'text-curb-navy'}`}>
+                          {est ? est.taxLine.value : `$${Math.round(subtotal * SAMPLE_CA_TAX_RATE).toLocaleString()}`}
+                        </span>
+                      </div>
+                      {/* Registration line — dynamic */}
+                      {est && est.regLine.amount !== null && (
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-600">{est.regLine.label} <span className="text-green-600 text-xs ml-1">✓ confirmed</span></span>
+                          <span className="font-semibold text-curb-navy">{est.regLine.value}</span>
+                        </div>
+                      )}
+                      {!est && (
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-600">CA title & registration</span>
+                          <span className="font-semibold text-curb-navy">${SAMPLE_CA_REG.toLocaleString()}</span>
+                        </div>
+                      )}
+                      {/* Total line */}
+                      <div className="border-t border-gray-200 pt-2.5 flex justify-between">
+                        <div>
+                          <span className="font-bold text-curb-navy">{escrowPending ? 'Estimated amount due at purchase' : 'Total due at purchase'}</span>
+                          {escrowPending && (
+                            <p className="text-xs text-amber-600 mt-0.5">Some charges still pending dealer review</p>
+                          )}
+                        </div>
+                        <span className="font-bold text-curb-navy text-lg">{escrowPending ? '~' : ''}${escrowTotal.toLocaleString()}</span>
+                      </div>
+                    </div>
+
+                    {/* NV buyer CA pickup — credit callout */}
+                    {nvPickupCaCredit && (
+                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                        <p className="text-xs font-semibold text-blue-800 mb-1.5">⚠ Tax credit note — Dealer review required</p>
+                        <p className="text-xs text-blue-700 leading-relaxed">
+                          If California sales tax is collected at pickup, you may be eligible for a credit against Nevada use tax for the amount paid to California. The dealer will review whether CA tax applies and note any potential credit before you fund escrow. Final treatment depends on both states&apos; current rules.
+                        </p>
+                      </div>
+                    )}
+
+                    {/* What you may owe separately — dynamic */}
+                    {separateItems.length > 0 ? (
+                      <div className="bg-white rounded-lg p-4">
+                        <p className="text-xs font-semibold text-amber-800 mb-2">What you may owe separately</p>
+                        <div className="space-y-2">
+                          {separateItems.map((item, i) => (
+                            <div key={i}>
+                              <div className="flex justify-between text-xs">
+                                <span className="text-gray-700 font-medium">{item.label}</span>
+                                <span className="text-gray-700 font-medium">{item.value}</span>
+                              </div>
+                              {item.note && <p className="text-xs text-gray-500 mt-0.5">{item.note}</p>}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="bg-white rounded-lg p-4">
+                        <p className="text-xs font-semibold text-amber-800 mb-2">What you may owe separately</p>
+                        <p className="text-xs text-gray-600 leading-relaxed">
+                          Based on this scenario, all estimated charges are included in the total above. The dealer confirms the final breakdown before you fund escrow.
+                        </p>
+                      </div>
+                    )}
+
+                    <p className="text-xs text-amber-700 leading-relaxed">
+                      This is a sample of the confirmation you&apos;ll see before funding escrow. The dealer reviews your delivery choice, confirms the taxable amount, and locks in the total. You won&apos;t be asked to fund until every line item is confirmed.
                     </p>
                   </div>
-
-                  <p className="text-xs text-amber-700 leading-relaxed">
-                    This is a sample of the confirmation you&apos;ll see before funding escrow. The dealer reviews your delivery choice, confirms the taxable amount, and locks in the total. You won&apos;t be asked to fund until every line item is confirmed.
-                  </p>
-                </div>
+                  );
+                })()}
               </div>
 
               {/* What happens after you win */}
