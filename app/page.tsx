@@ -104,7 +104,7 @@ export default function Home() {
                       <p className="text-xs text-gray-400 mb-1">Retail value</p>
                       <p className="text-lg text-gray-400 line-through">$24,000</p>
                       <div className="mt-1 inline-block px-3 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full">
-                        Save $3,730+
+                        Save $3,730
                       </div>
                     </div>
                   </div>
@@ -128,9 +128,9 @@ export default function Home() {
               </div>
               <div className="text-center">
                 <div className="text-4xl md:text-5xl font-extrabold text-curb-orange mb-2">
-                  <AnimatedCounter prefix="$" end={5500} />
+                  <AnimatedCounter prefix="$" end={3730} />
                 </div>
-                <p className="text-sm md:text-base text-gray-500 font-medium">Avg. savings vs. retail</p>
+                <p className="text-sm md:text-base text-gray-500 font-medium">Saved on the BMW example</p>
               </div>
               <div className="text-center">
                 <div className="text-4xl md:text-5xl font-extrabold text-curb-navy mb-2">
@@ -195,7 +195,7 @@ export default function Home() {
                   Skip the markup.<br />Buy at wholesale.
                 </h3>
                 <p className="text-lg text-gray-600 mb-8 max-w-md leading-relaxed">
-                  Access the same cars dealers buy at auction — with full inspections and dealer-direct payment. See the required repairs you’ll pay for before you bid. Save $3,730+ on the BMW example.
+                  Access the same cars dealers buy at auction — with full inspections and dealer-direct payment. See the required repairs you’ll pay for before you bid. Save $3,730 on the BMW example listing.
                 </p>
                 <Link
                   href="/browse"
@@ -267,8 +267,8 @@ export default function Home() {
                 ),
               },
               {
-                title: 'Repairs Included',
-                desc: 'Certified dealers complete repairs before delivery—no surprise costs or "as-is" sales',
+                title: 'Required Repair Costs Up Front',
+                desc: 'See every required repair and its cost before you bid—no surprise costs or "as-is" sales',
                 icon: (
                   <svg className="w-6 h-6 text-curb-orange" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
                     <path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
@@ -348,7 +348,7 @@ export default function Home() {
                     <p className="text-sm text-gray-500 mb-1">Subtotal (bid + repairs + fee)</p>
                     <p className="text-3xl font-extrabold text-curb-orange">$20,270</p>
                   </div>
-                  <p className="text-sm text-gray-500 leading-relaxed">Direct from dealer. Inspected, repaired, dealer-direct payment. <strong className="text-curb-navy">Save $3,730+</strong> before taxes &amp; registration.</p>
+                  <p className="text-sm text-gray-500 leading-relaxed">Direct from dealer. Inspected, repaired, dealer-direct payment. <strong className="text-curb-navy">Save $3,730</strong> before taxes &amp; registration.</p>
                 </div>
               </div>
             </div>
