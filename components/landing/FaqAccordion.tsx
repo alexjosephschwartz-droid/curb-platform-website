@@ -24,6 +24,10 @@ const faqs = [
     a: 'Dealers pay a $100 listing fee per vehicle, plus a 3% buyer premium on successful sales. Additional fees include $75 for inspection coordination and $50 for service referrals.',
   },
   {
+    q: 'How are dealers rated?',
+    a: 'Every dealer on Curb is rated by buyers after each transaction. Ratings cover communication, repair quality, and accuracy of condition reports. Dealers below a 4.0 average are reviewed and may be removed from the platform.',
+  },
+  {
     q: 'Is Curb available in my area?',
     a: 'We\'re launching initially in Southern California. Join our waitlist to be notified when we expand to your region.',
   },

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 
 const FORMSPREE_URL = 'https://formspree.io/f/xvzrezkd';
 
@@ -112,19 +113,25 @@ export default function HeroCTAs() {
 
   return (
     <>
-      <div className="flex flex-col sm:flex-row gap-4 justify-center">
+      <div className="flex flex-col sm:flex-row gap-4 items-center">
+        <Link
+          href="/example"
+          className="bg-curb-orange text-white px-8 py-4 rounded-full hover:bg-orange-600 transition font-semibold text-lg shadow-lg shadow-curb-orange/25 hover:shadow-xl hover:shadow-curb-orange/30 hover:-translate-y-0.5"
+        >
+          Try the demo
+        </Link>
         <button
           onClick={() => setShowBuyerForm(true)}
-          className="bg-curb-orange text-white px-8 py-4 rounded-full hover:bg-orange-600 transition font-semibold text-lg"
-        >
-          Join as Buyer
-        </button>
-        <button
-          onClick={() => setShowDealerForm(true)}
           className="bg-curb-navy text-white px-8 py-4 rounded-full hover:bg-slate-800 transition font-semibold text-lg"
         >
-          Sell Your Lot
+          Join the SoCal waitlist
         </button>
+        <a
+          href="#dealers"
+          className="text-curb-navy font-semibold hover:text-curb-orange transition text-lg"
+        >
+          For dealers &rarr;
+        </a>
       </div>
 
       {showBuyerForm && (

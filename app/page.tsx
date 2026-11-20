@@ -7,7 +7,7 @@ import HeroCTAs from '@/components/landing/HeroCTAs';
 import FaqAccordion from '@/components/landing/FaqAccordion';
 import DealerCTA from '@/components/landing/DealerCTA';
 import ScrollReveal from '@/components/landing/ScrollReveal';
-import AnimatedCounter from '@/components/landing/AnimatedCounter';
+import WaitlistButton from '@/components/landing/WaitlistButton';
 
 export const metadata: Metadata = {
   title: 'Curb - Wholesale Prices. Retail Access.',
@@ -115,40 +115,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Social Proof / Traction Bar */}
-      <section className="py-16 px-4 sm:px-6 lg:px-8 bg-white border-b border-gray-100">
-        <div className="max-w-6xl mx-auto">
-          <ScrollReveal>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-12">
-              <div className="text-center">
-                <div className="text-4xl md:text-5xl font-extrabold text-curb-navy mb-2">
-                  <AnimatedCounter end={40} suffix="M+" />
-                </div>
-                <p className="text-sm md:text-base text-gray-500 font-medium">Used cars sold annually in the U.S.</p>
-              </div>
-              <div className="text-center">
-                <div className="text-4xl md:text-5xl font-extrabold text-curb-orange mb-2">
-                  <AnimatedCounter prefix="$" end={3730} />
-                </div>
-                <p className="text-sm md:text-base text-gray-500 font-medium">Saved on the BMW example</p>
-              </div>
-              <div className="text-center">
-                <div className="text-4xl md:text-5xl font-extrabold text-curb-navy mb-2">
-                  <AnimatedCounter end={3} />
-                </div>
-                <p className="text-sm md:text-base text-gray-500 font-medium">Day auction cycle</p>
-              </div>
-              <div className="text-center">
-                <div className="text-4xl md:text-5xl font-extrabold text-curb-orange mb-2">
-                  <AnimatedCounter end={15} suffix="+" />
-                </div>
-                <p className="text-sm md:text-base text-gray-500 font-medium">Years founder auto experience</p>
-              </div>
-            </div>
-          </ScrollReveal>
-        </div>
-      </section>
-
       {/* How It Works */}
       <section id="how-it-works" className="py-24 px-4 sm:px-6 lg:px-8 bg-gray-50">
         <div className="max-w-7xl mx-auto">
@@ -160,11 +126,11 @@ export default function Home() {
           <div className="grid md:grid-cols-5 gap-8 relative">
             <div className="hidden md:block absolute left-[10%] right-[10%] h-0.5 bg-gradient-to-r from-curb-orange via-curb-orange to-curb-navy" style={{ top: '2rem' }}></div>
             {[
-              { number: 1, title: 'Dealer Lists the Car', desc: 'VIN, photos, professional inspection & repair quote' },
-              { number: 2, title: 'Review the Price & Bid', desc: 'Transparent 3-day auction with real-time updates' },
-              { number: 3, title: 'Win & Pay a Deposit', desc: 'Pay the selling dealer directly — deposit credited toward the purchase price' },
-              { number: 4, title: 'Review Completed Repairs', desc: 'Dealer shares the completed repair order before pickup' },
-              { number: 5, title: 'Inspect & Pay the Balance', desc: 'Inspect the car and pay the remaining balance directly to the dealer' },
+              { number: 1, title: 'Dealer Lists the Car', desc: 'VIN, photos, condition report, and a professional inspection with every required repair priced up front' },
+              { number: 2, title: 'Review the Price & Bid', desc: 'See the full cost breakdown — bid, repairs, and buyer premium — then place your bid in a transparent 3-day auction' },
+              { number: 3, title: 'Win & Pay a Deposit', desc: 'Pay the selling dealer directly. Deposit amount, due date, and refund terms are confirmed before you bid' },
+              { number: 4, title: 'Review Completed Repairs', desc: 'The dealer completes agreed-upon repairs and shares the completed repair order — no surprises' },
+              { number: 5, title: 'Inspect & Pay the Balance', desc: 'Inspect the car at pickup and pay the remaining balance directly to the dealer. Title transfers to you' },
             ].map((step, i) => (
               <ScrollReveal key={step.number} delay={i * 100}>
                 <div className="relative z-10 group">
@@ -180,207 +146,63 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Split-Screen: Buyer / Dealer Routing */}
-      <section className="relative overflow-hidden">
-        <div className="grid md:grid-cols-2 min-h-[480px]">
-          {/* Buyer side */}
-          <div className="relative bg-gradient-to-br from-orange-50 to-orange-100 p-12 md:p-16 flex flex-col justify-center group">
-            <div className="absolute inset-0 bg-gradient-to-br from-curb-orange/5 to-curb-orange/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-            <div className="relative">
-              <ScrollReveal>
-                <div className="inline-flex items-center px-3 py-1 bg-curb-orange/10 text-curb-orange text-xs font-bold rounded-full uppercase tracking-wider mb-6">
-                  For Buyers
-                </div>
-                <h3 className="text-3xl md:text-4xl font-extrabold text-curb-navy mb-4 leading-tight">
-                  Skip the markup.<br />Buy at wholesale.
-                </h3>
-                <p className="text-lg text-gray-600 mb-8 max-w-md leading-relaxed">
-                  Access the same cars dealers buy at auction — with full inspections and dealer-direct payment. See the required repairs you’ll pay for before you bid. Save $3,730 on the BMW example listing.
-                </p>
-                <Link
-                  href="/browse"
-                  className="inline-flex items-center gap-2 bg-curb-orange text-white px-8 py-4 rounded-full hover:bg-orange-600 transition-all font-semibold text-lg shadow-lg shadow-curb-orange/25 hover:shadow-xl hover:shadow-curb-orange/30 hover:-translate-y-0.5"
-                >
-                  Browse Auctions
-                  <svg className="w-5 h-5" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor"><path d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
-                </Link>
-              </ScrollReveal>
-            </div>
-          </div>
-
-          {/* Dealer side */}
-          <div className="relative bg-gradient-to-br from-curb-navy to-slate-900 p-12 md:p-16 flex flex-col justify-center group">
-            <div className="absolute inset-0 bg-gradient-to-br from-curb-orange/5 to-curb-orange/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-            <div className="relative">
-              <ScrollReveal delay={150}>
-                <div className="inline-flex items-center px-3 py-1 bg-curb-orange/20 text-curb-orange text-xs font-bold rounded-full uppercase tracking-wider mb-6">
-                  For Dealers
-                </div>
-                <h3 className="text-3xl md:text-4xl font-extrabold text-white mb-4 leading-tight">
-                  Sell in 3 days.<br />Earn on repairs.
-                </h3>
-                <p className="text-lg text-gray-300 mb-8 max-w-md leading-relaxed">
-                  List wholesale trade-ins directly to consumers. Net more than Manheim, plus service revenue on every deal. We handle the rest.
-                </p>
-                <a
-                  href="#dealers"
-                  className="inline-flex items-center gap-2 bg-white text-curb-navy px-8 py-4 rounded-full hover:bg-gray-100 transition-all font-semibold text-lg shadow-lg hover:shadow-xl hover:-translate-y-0.5"
-                >
-                  List Your Inventory
-                  <svg className="w-5 h-5" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor"><path d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
-                </a>
-              </ScrollReveal>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* For Buyers — with distinct icons */}
-      <section id="buyers" className="py-24 px-4 sm:px-6 lg:px-8 bg-white">
-        <div className="max-w-7xl mx-auto">
+      {/* Price Comparison — collapsible */}
+      <section className="py-12 px-4 sm:px-6 lg:px-8 bg-white">
+        <div className="max-w-4xl mx-auto">
           <ScrollReveal>
-            <p className="text-curb-orange font-semibold text-sm uppercase tracking-widest text-center mb-3">Buyer Benefits</p>
-            <h2 className="text-4xl md:text-5xl font-extrabold text-curb-navy text-center mb-4">Why Buy on Curb</h2>
-            <p className="text-xl text-gray-600 text-center mb-16 max-w-3xl mx-auto">
-              Every protection you&apos;d want, built into every transaction
-            </p>
-          </ScrollReveal>
-
-          <div className="grid md:grid-cols-3 gap-8 mb-20">
-            {[
-              {
-                title: 'Wholesale Pricing',
-                desc: 'Save thousands by buying directly from dealers at wholesale prices without retail markup',
-                icon: (
-                  <svg className="w-6 h-6 text-curb-orange" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
-                    <path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                  </svg>
-                ),
-              },
-              {
-                title: 'Transparent Inspections',
-                desc: "Complete condition reports and pre-sale inspections reveal exactly what you're buying",
-                icon: (
-                  <svg className="w-6 h-6 text-curb-orange" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
-                    <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
-                  </svg>
-                ),
-              },
-              {
-                title: 'Required Repair Costs Up Front',
-                desc: 'See every required repair and its cost before you bid—no surprise costs or "as-is" sales',
-                icon: (
-                  <svg className="w-6 h-6 text-curb-orange" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
-                    <path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
-                    <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                  </svg>
-                ),
-              },
-              {
-                title: 'Dealer-Direct Payment',
-                desc: 'Pay the selling dealer directly. Review completed repairs before paying the balance.',
-                icon: (
-                  <svg className="w-6 h-6 text-curb-orange" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
-                    <path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
-                  </svg>
-                ),
-              },
-              {
-                title: 'No Surprises',
-                desc: 'Review and approve all repairs before taking delivery with complete transparency',
-                icon: (
-                  <svg className="w-6 h-6 text-curb-orange" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
-                    <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                    <path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-                  </svg>
-                ),
-              },
-              {
-                title: 'Dealer Ratings',
-                desc: 'Verified reviews and ratings help you buy from trusted, professional dealers',
-                icon: (
-                  <svg className="w-6 h-6 text-curb-orange" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
-                    <path d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path>
-                  </svg>
-                ),
-              },
-            ].map((benefit, i) => (
-              <ScrollReveal key={benefit.title} delay={i * 80}>
-                <div className="bg-gray-50 p-8 rounded-2xl hover:shadow-lg transition-all duration-300 border border-transparent hover:border-curb-orange/20 h-full group hover:-translate-y-1">
-                  <div className="w-12 h-12 bg-curb-orange/10 rounded-xl flex items-center justify-center mb-5 group-hover:bg-curb-orange/20 transition-colors">
-                    {benefit.icon}
+            <details className="group border border-gray-200 rounded-2xl overflow-hidden">
+              <summary className="flex items-center justify-between px-8 py-5 cursor-pointer bg-gray-50 hover:bg-gray-100 transition select-none">
+                <span className="text-lg font-bold text-curb-navy">See the price comparison</span>
+                <span className="text-curb-orange text-xl group-open:rotate-45 transition-transform duration-200">+</span>
+              </summary>
+              <div className="p-8 pt-6">
+                <div className="grid md:grid-cols-3 gap-6">
+                  <div className="bg-gray-50 rounded-2xl p-8 border-2 border-gray-200 relative">
+                    <div className="absolute -top-3 left-6 px-3 py-0.5 bg-gray-200 text-gray-600 text-xs font-bold rounded-full uppercase tracking-wide">Wholesale Auction</div>
+                    <div className="mt-4 mb-6">
+                      <p className="text-sm text-gray-500 mb-1">Dealer sells for</p>
+                      <p className="text-3xl font-extrabold text-gray-700">$17,000</p>
+                    </div>
+                    <p className="text-sm text-gray-500 leading-relaxed">Car goes to another dealer. Consumer never sees it at this price.</p>
                   </div>
-                  <h3 className="text-xl font-bold text-curb-navy mb-3">{benefit.title}</h3>
-                  <p className="text-gray-600 leading-relaxed">{benefit.desc}</p>
-                </div>
-              </ScrollReveal>
-            ))}
-          </div>
-
-          {/* Price comparison — visual storytelling */}
-          <ScrollReveal>
-            <div className="max-w-4xl mx-auto">
-              <p className="text-curb-orange font-semibold text-sm uppercase tracking-widest text-center mb-3">Price Comparison</p>
-              <h3 className="text-3xl md:text-4xl font-extrabold text-curb-navy text-center mb-12">See where the money goes</h3>
-              <div className="grid md:grid-cols-3 gap-6">
-                {/* Traditional path */}
-                <div className="bg-gray-50 rounded-2xl p-8 border-2 border-gray-200 relative hover:shadow-md transition-all duration-300">
-                  <div className="absolute -top-3 left-6 px-3 py-0.5 bg-gray-200 text-gray-600 text-xs font-bold rounded-full uppercase tracking-wide">Wholesale Auction</div>
-                  <div className="mt-4 mb-6">
-                    <p className="text-sm text-gray-500 mb-1">Dealer sells for</p>
-                    <p className="text-3xl font-extrabold text-gray-700">$17,000</p>
+                  <div className="bg-red-50/50 rounded-2xl p-8 border-2 border-red-200 relative">
+                    <div className="absolute -top-3 left-6 px-3 py-0.5 bg-red-100 text-red-600 text-xs font-bold rounded-full uppercase tracking-wide">Retail Lot</div>
+                    <div className="mt-4 mb-6">
+                      <p className="text-sm text-gray-500 mb-1">You pay</p>
+                      <p className="text-3xl font-extrabold text-red-600">$24,000</p>
+                    </div>
+                    <p className="text-sm text-gray-500 leading-relaxed">Second dealer adds markup, recon, and profit. &ldquo;As-is&rdquo; or limited warranty.</p>
                   </div>
-                  <p className="text-sm text-gray-500 leading-relaxed">Car goes to another dealer. Consumer never sees it at this price.</p>
-                </div>
-                {/* Retail lot */}
-                <div className="bg-red-50/50 rounded-2xl p-8 border-2 border-red-200 relative hover:shadow-md transition-all duration-300">
-                  <div className="absolute -top-3 left-6 px-3 py-0.5 bg-red-100 text-red-600 text-xs font-bold rounded-full uppercase tracking-wide">Retail Lot</div>
-                  <div className="mt-4 mb-6">
-                    <p className="text-sm text-gray-500 mb-1">You pay</p>
-                    <p className="text-3xl font-extrabold text-red-600">$24,000</p>
+                  <div className="bg-orange-50 rounded-2xl p-8 border-2 border-curb-orange relative ring-2 ring-curb-orange/20">
+                    <div className="absolute -top-3 left-6 px-3 py-0.5 bg-curb-orange text-white text-xs font-bold rounded-full uppercase tracking-wide">On Curb</div>
+                    <div className="mt-4 mb-6">
+                      <p className="text-sm text-gray-500 mb-1">Subtotal (bid + repairs + fee)</p>
+                      <p className="text-3xl font-extrabold text-curb-orange">$20,270</p>
+                    </div>
+                    <p className="text-sm text-gray-500 leading-relaxed">Direct from dealer. Inspected, repaired, dealer-direct payment. <strong className="text-curb-navy">Save $3,730</strong> before taxes &amp; registration.</p>
                   </div>
-                  <p className="text-sm text-gray-500 leading-relaxed">Second dealer adds markup, recon, and profit. &ldquo;As-is&rdquo; or limited warranty.</p>
-                </div>
-                {/* Curb */}
-                <div className="bg-orange-50 rounded-2xl p-8 border-2 border-curb-orange relative ring-2 ring-curb-orange/20 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
-                  <div className="absolute -top-3 left-6 px-3 py-0.5 bg-curb-orange text-white text-xs font-bold rounded-full uppercase tracking-wide">On Curb</div>
-                  <div className="mt-4 mb-6">
-                    <p className="text-sm text-gray-500 mb-1">Subtotal (bid + repairs + fee)</p>
-                    <p className="text-3xl font-extrabold text-curb-orange">$20,270</p>
-                  </div>
-                  <p className="text-sm text-gray-500 leading-relaxed">Direct from dealer. Inspected, repaired, dealer-direct payment. <strong className="text-curb-navy">Save $3,730</strong> before taxes &amp; registration.</p>
                 </div>
               </div>
-            </div>
+            </details>
           </ScrollReveal>
         </div>
       </section>
 
-      {/* Social Proof — Founder Credibility */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gray-50">
-        <div className="max-w-5xl mx-auto">
+      {/* Founder Note */}
+      <section className="py-16 px-4 sm:px-6 lg:px-8 bg-gray-50">
+        <div className="max-w-3xl mx-auto">
           <ScrollReveal>
-            <div className="bg-white rounded-3xl p-10 md:p-14 shadow-sm border border-gray-100">
-              <div className="flex flex-col md:flex-row gap-8 items-center">
-                <div className="flex-shrink-0 w-20 h-20 bg-curb-navy rounded-2xl flex items-center justify-center">
-                  <span className="text-2xl font-bold text-white">AS</span>
-                </div>
-                <div className="flex-1 text-center md:text-left">
-                  <blockquote className="text-xl md:text-2xl text-curb-navy font-medium leading-relaxed mb-4">
-                    &ldquo;I&apos;ve watched thousands of quality trade-ins get shipped to wholesale auctions where consumers will never see them. Curb opens that door — same cars, full transparency, thousands less.&rdquo;
-                  </blockquote>
-                  <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4">
-                    <p className="font-bold text-curb-navy">Alex Schwartz</p>
-                    <span className="hidden md:block text-gray-300">|</span>
-                    <p className="text-gray-500">Founder &amp; CEO &bull; 15+ years automotive retail &bull; Former Dealership GM</p>
-                  </div>
-                  <div className="flex flex-wrap gap-2 mt-4 justify-center md:justify-start">
-                    <span className="px-3 py-1 bg-orange-50 text-curb-orange text-xs font-semibold rounded-full border border-orange-100">#1 Fiat Nationally (2015)</span>
-                    <span className="px-3 py-1 bg-orange-50 text-curb-orange text-xs font-semibold rounded-full border border-orange-100">#1 Maserati Nationally (2017)</span>
-                    <span className="px-3 py-1 bg-orange-50 text-curb-orange text-xs font-semibold rounded-full border border-orange-100">Lithia AMP Graduate</span>
-                    <span className="px-3 py-1 bg-orange-50 text-curb-orange text-xs font-semibold rounded-full border border-orange-100">CA Licensed Dealer</span>
-                  </div>
-                </div>
+            <div className="flex flex-col md:flex-row gap-6 items-center">
+              <div className="flex-shrink-0 w-16 h-16 bg-curb-navy rounded-2xl flex items-center justify-center">
+                <span className="text-xl font-bold text-white">AS</span>
+              </div>
+              <div className="text-center md:text-left">
+                <blockquote className="text-lg text-curb-navy font-medium leading-relaxed mb-2">
+                  &ldquo;I&apos;ve watched thousands of quality trade-ins get shipped to wholesale auctions where consumers will never see them. Curb opens that door.&rdquo;
+                </blockquote>
+                <p className="text-gray-500 text-sm">
+                  <strong className="text-curb-navy">Alex Schwartz</strong> &bull; Founder &amp; CEO &bull; 15+ years automotive retail &bull; <Link href="/about" className="text-curb-orange hover:underline">Read more</Link>
+                </p>
               </div>
             </div>
           </ScrollReveal>
@@ -388,56 +210,27 @@ export default function Home() {
       </section>
 
       {/* For Dealers */}
-      <section id="dealers" className="py-24 px-4 sm:px-6 lg:px-8 bg-curb-navy text-white">
-        <div className="max-w-7xl mx-auto">
+      <section id="dealers" className="py-20 px-4 sm:px-6 lg:px-8 bg-curb-navy text-white">
+        <div className="max-w-4xl mx-auto text-center">
           <ScrollReveal>
-            <p className="text-curb-orange font-semibold text-sm uppercase tracking-widest text-center mb-3">Dealer Partner Program</p>
-            <h2 className="text-4xl md:text-5xl font-extrabold text-center mb-4">For Dealers</h2>
-            <p className="text-xl text-gray-300 text-center mb-16 max-w-3xl mx-auto">
-              Liquidate wholesale inventory in 3 days while earning service revenue
+            <h2 className="text-3xl md:text-4xl font-extrabold mb-4">For Dealers</h2>
+            <p className="text-lg text-gray-300 mb-8 max-w-2xl mx-auto">
+              Liquidate wholesale inventory in 3 days. Earn service revenue on every deal. Net more than Manheim.
             </p>
+            <DealerCTA />
           </ScrollReveal>
 
           <ScrollReveal>
-            <div className="grid md:grid-cols-3 gap-8 mb-16">
-              {[
-                {
-                  title: '3-Day Liquidation',
-                  desc: 'Move wholesale inventory faster than traditional auction channels',
-                  icon: (
-                    <svg className="w-7 h-7 text-curb-orange" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor"><path d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-                  ),
-                },
-                {
-                  title: 'Service Revenue',
-                  desc: 'Earn on repairs and reconditioning — not just the sale markup',
-                  icon: (
-                    <svg className="w-7 h-7 text-curb-orange" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor"><path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                  ),
-                },
-                {
-                  title: 'Premium Positioning',
-                  desc: 'A curated marketplace, not an auction junkyard — attract serious buyers',
-                  icon: (
-                    <svg className="w-7 h-7 text-curb-orange" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor"><path d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path></svg>
-                  ),
-                },
-              ].map((item, i) => (
-                <div key={item.title} className="bg-white/5 backdrop-blur border border-white/10 rounded-2xl p-8 hover:bg-white/10 transition-all duration-300 hover:-translate-y-1">
-                  <div className="w-14 h-14 bg-curb-orange/10 rounded-xl flex items-center justify-center mb-5">
-                    {item.icon}
-                  </div>
-                  <h3 className="text-xl font-bold text-white mb-3">{item.title}</h3>
-                  <p className="text-gray-300 leading-relaxed">{item.desc}</p>
-                </div>
-              ))}
-            </div>
+            <details id="dealer-economics" className="mt-10 group border border-white/10 rounded-2xl overflow-hidden text-left">
+              <summary className="flex items-center justify-between px-8 py-5 cursor-pointer bg-white/5 hover:bg-white/10 transition select-none">
+                <span className="text-lg font-bold text-white">See the dealer economics</span>
+                <span className="text-curb-orange text-xl group-open:rotate-45 transition-transform duration-200">+</span>
+              </summary>
+              <div className="p-6">
+                <DealerRevenueCalculator />
+              </div>
+            </details>
           </ScrollReveal>
-
-          <ScrollReveal>
-            <DealerRevenueCalculator />
-          </ScrollReveal>
-          <DealerCTA />
         </div>
       </section>
 
@@ -456,23 +249,9 @@ export default function Home() {
               Ready to buy smarter?
             </h2>
             <p className="text-xl text-gray-300 mb-10 max-w-2xl mx-auto leading-relaxed">
-              Join the waitlist for early access to wholesale-priced vehicles with full transparency and protection.
+              Join the waitlist for early access to wholesale-priced vehicles in Southern California.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link
-                href="/browse"
-                className="inline-flex items-center justify-center gap-2 bg-curb-orange text-white px-10 py-5 rounded-full hover:bg-orange-600 transition-all font-bold text-lg shadow-lg shadow-curb-orange/30 hover:shadow-xl hover:shadow-curb-orange/40 hover:-translate-y-0.5"
-              >
-                Browse Auctions
-                <svg className="w-5 h-5" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor"><path d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
-              </Link>
-              <Link
-                href="/about"
-                className="inline-flex items-center justify-center gap-2 bg-white/10 backdrop-blur text-white px-10 py-5 rounded-full hover:bg-white/20 transition-all font-bold text-lg border border-white/20"
-              >
-                Learn More
-              </Link>
-            </div>
+            <WaitlistButton />
           </ScrollReveal>
         </div>
       </section>
@@ -489,15 +268,15 @@ export default function Home() {
               <h4 className="font-semibold mb-4">For Buyers</h4>
               <ul className="space-y-2 text-gray-400">
                 <li><a href="#how-it-works" className="hover:text-curb-orange transition">How It Works</a></li>
-                <li><a href="#buyers" className="hover:text-curb-orange transition">Benefits</a></li>
+                <li><Link href="/example" className="hover:text-curb-orange transition">Try the Demo</Link></li>
                 <li><a href="#faq" className="hover:text-curb-orange transition">FAQ</a></li>
               </ul>
             </div>
             <div>
               <h4 className="font-semibold mb-4">For Dealers</h4>
               <ul className="space-y-2 text-gray-400">
-                <li><a href="#dealers" className="hover:text-curb-orange transition">Why Curb</a></li>
-                <li><a href="#dealers" className="hover:text-curb-orange transition">Revenue Calculator</a></li>
+                <li><a href="#dealers" className="hover:text-curb-orange transition">Partner Program</a></li>
+                <li><a href="#dealer-economics" className="hover:text-curb-orange transition">Revenue Calculator</a></li>
               </ul>
             </div>
             <div>
