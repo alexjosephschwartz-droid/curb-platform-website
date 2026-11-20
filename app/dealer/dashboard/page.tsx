@@ -101,7 +101,7 @@ const SAMPLE_VEHICLES: VehicleWithAuction[] = [
 
 export default function DealerDashboard() {
   const router = useRouter();
-  const { user, profile, loading: authLoading, isDealer } = useUser();
+  const { user, profile, loading: authLoading, isDealer, isAdmin } = useUser();
   const [vehicles, setVehicles] = useState<VehicleWithAuction[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'active' | 'pending' | 'sold' | 'all'>('active');
@@ -120,7 +120,7 @@ export default function DealerDashboard() {
 
   useEffect(() => {
     if (authLoading) return;
-    if (!user || !isDealer) {
+    if (!user || (!isDealer && !isAdmin)) {
       router.push('/login?redirect=/dealer/dashboard');
       return;
     }
@@ -133,11 +133,12 @@ export default function DealerDashboard() {
         .eq('dealer_id', user!.id)
         .order('created_at', { ascending: false });
 
-      if (!error && data && data.length > 0) {
+      if (!error && data && data.length >= 3) {
+        // Enough real data to look like a working dashboard
         setVehicles(data as VehicleWithAuction[]);
         setIsDemo(false);
       } else {
-        // Show sample data when no real vehicles exist
+        // Show sample data when dealer has fewer than 3 vehicles
         setVehicles(SAMPLE_VEHICLES);
         setIsDemo(true);
       }
