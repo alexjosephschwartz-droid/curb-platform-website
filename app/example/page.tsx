@@ -14,6 +14,48 @@ const PHOTOS = [
   'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=800&h=480&fit=crop&auto=format&q=80',
 ];
 
+const REPAIRS_TOTAL = 1215;
+const RETAIL_VALUE = 24000;
+const SAMPLE_CA_TAX_RATE = 0.0950; // ~9.5% LA County sample
+const SAMPLE_CA_REG = 435; // sample CA title, reg, plates
+const SAMPLE_NV_TAX_RATE = 0.0825; // ~8.25% Clark County sample
+const SAMPLE_NV_REG = 350; // sample NV title, reg, plates
+
+type DemoScenario = 'ca-pickup' | 'nv-ship' | 'nv-pickup-ca';
+
+const DEMO_SCENARIOS: { key: DemoScenario; label: string; short: string; buyerZip: string; delivery: 'pickup' | 'ship'; destZip: string; regZip: string; desc: string }[] = [
+  {
+    key: 'ca-pickup',
+    label: 'California pickup & registration',
+    short: 'CA Pickup',
+    buyerZip: '90210',
+    delivery: 'pickup',
+    destZip: '90210',
+    regZip: '90210',
+    desc: 'Buyer in Beverly Hills picks up from the LA dealer and registers in California.',
+  },
+  {
+    key: 'nv-ship',
+    label: 'Ship to Nevada, register there',
+    short: 'Ship to NV',
+    buyerZip: '89101',
+    delivery: 'ship',
+    destZip: '89101',
+    regZip: '89101',
+    desc: 'Buyer in Las Vegas has the car shipped from the LA dealer and registers in Nevada.',
+  },
+  {
+    key: 'nv-pickup-ca',
+    label: 'Nevada buyer, California pickup',
+    short: 'NV Buyer, CA Pickup',
+    buyerZip: '89101',
+    delivery: 'pickup',
+    destZip: '90015',
+    regZip: '89101',
+    desc: 'Buyer from Las Vegas picks up at the LA dealer but registers the car back in Nevada.',
+  },
+];
+
 export default function ExampleAuctionPage() {
   const [selectedPhoto, setSelectedPhoto] = useState(0);
   const [showWaitlist, setShowWaitlist] = useState(false);
@@ -24,13 +66,23 @@ export default function ExampleAuctionPage() {
     email: '', firstName: '', lastName: '', location: '', vehicleType: '', priceRange: '',
   });
 
-  // Estimate your total state
-  const [estZip, setEstZip] = useState('');
+  // Editable bid amount
+  const [bidAmount, setBidAmount] = useState(18500);
+  const [bidInput, setBidInput] = useState('18,500');
+
+  // Computed pricing
+  const premium = Math.round(bidAmount * 0.03);
+  const subtotal = bidAmount + REPAIRS_TOTAL + premium;
+  const savings = RETAIL_VALUE - subtotal;
+
+  // Estimate state
+  const [activeScenario, setActiveScenario] = useState<DemoScenario>('ca-pickup');
+  const [customMode, setCustomMode] = useState(false);
+  const [estZip, setEstZip] = useState('90210');
   const [estDelivery, setEstDelivery] = useState<'pickup' | 'ship'>('pickup');
   const [estDestZip, setEstDestZip] = useState('');
   const [estRegZipDifferent, setEstRegZipDifferent] = useState(false);
   const [estRegZip, setEstRegZip] = useState('');
-  const [showEstimate, setShowEstimate] = useState(false);
 
   // Simple CA ZIP detection (900xx–961xx)
   const isCaliforniaZip = (zip: string) => {
@@ -38,38 +90,85 @@ export default function ExampleAuctionPage() {
     return zip.length === 5 && n >= 900 && n <= 961;
   };
 
-  const VEHICLE_SUBTOTAL = 20270; // $18,500 + $1,215 + $555
-  const SAMPLE_CA_TAX_RATE = 0.0950; // ~9.5% LA County sample
-  const SAMPLE_CA_REG = 435; // sample CA title, reg, plates
+  // Simple NV ZIP detection (889xx–898xx)
+  const isNevadaZip = (zip: string) => {
+    const n = parseInt(zip.slice(0, 3), 10);
+    return zip.length === 5 && n >= 889 && n <= 898;
+  };
+
+  const handleBidChange = (raw: string) => {
+    const digits = raw.replace(/[^0-9]/g, '');
+    const num = parseInt(digits, 10) || 0;
+    setBidAmount(num);
+    setBidInput(num > 0 ? num.toLocaleString() : '');
+  };
+
+  const selectScenario = (key: DemoScenario) => {
+    const s = DEMO_SCENARIOS.find(d => d.key === key)!;
+    setActiveScenario(key);
+    setCustomMode(false);
+    setEstZip(s.buyerZip);
+    setEstDelivery(s.delivery);
+    setEstDestZip(s.delivery === 'ship' ? s.destZip : '');
+    setEstRegZipDifferent(s.regZip !== s.destZip);
+    setEstRegZip(s.regZip !== s.destZip ? s.regZip : '');
+  };
 
   const getEstimate = () => {
-    const buyerZip = estZip.trim();
-    const destZip = estDelivery === 'ship' ? estDestZip.trim() : buyerZip;
-    const regZip = estRegZipDifferent ? estRegZip.trim() : destZip;
-    const isPickup = estDelivery === 'pickup';
+    let buyerZip: string, destZip: string, regZip: string, isPickup: boolean;
+
+    if (customMode) {
+      buyerZip = estZip.trim();
+      destZip = estDelivery === 'ship' ? estDestZip.trim() : buyerZip;
+      regZip = estRegZipDifferent ? estRegZip.trim() : destZip;
+      isPickup = estDelivery === 'pickup';
+    } else {
+      const s = DEMO_SCENARIOS.find(d => d.key === activeScenario)!;
+      buyerZip = s.buyerZip;
+      destZip = s.destZip;
+      regZip = s.regZip;
+      isPickup = s.delivery === 'pickup';
+    }
+
     const destIsCA = isCaliforniaZip(destZip);
     const regIsCA = isCaliforniaZip(regZip);
+    const regIsNV = isNevadaZip(regZip);
 
     // Tax
     let taxLine: { label: string; value: string; note?: string };
     if (isPickup && destIsCA) {
-      const tax = Math.round(VEHICLE_SUBTOTAL * SAMPLE_CA_TAX_RATE);
-      taxLine = { label: 'Est. CA sales tax (~9.5%)', value: `$${tax.toLocaleString()}`, note: 'Sample estimate · Dealer to confirm exact rate' };
+      const tax = Math.round(subtotal * SAMPLE_CA_TAX_RATE);
+      taxLine = { label: 'Est. CA sales tax (~9.5%)', value: `$${tax.toLocaleString()}`, note: 'Sample estimate · Dealer review required' };
     } else if (!isPickup && !destIsCA) {
-      taxLine = { label: 'Sales tax', value: 'Likely $0 CA tax', note: 'For qualifying out-of-state deliveries, CA sales tax generally doesn\'t apply. You may owe tax in the state where you register.' };
+      taxLine = { label: 'CA sales tax', value: 'Likely $0', note: 'For qualifying out-of-state deliveries, CA sales tax generally doesn\'t apply.' };
     } else if (!isPickup && destIsCA) {
-      const tax = Math.round(VEHICLE_SUBTOTAL * SAMPLE_CA_TAX_RATE);
-      taxLine = { label: 'Est. CA sales tax (~9.5%)', value: `$${tax.toLocaleString()}`, note: 'Sample estimate · Dealer to confirm exact rate' };
+      const tax = Math.round(subtotal * SAMPLE_CA_TAX_RATE);
+      taxLine = { label: 'Est. CA sales tax (~9.5%)', value: `$${tax.toLocaleString()}`, note: 'Sample estimate · Dealer review required' };
     } else {
-      taxLine = { label: 'Sales tax', value: 'Dealer to confirm', note: 'Varies by location' };
+      // Pickup but not CA dest — e.g. NV buyer picking up in CA
+      // CA may still charge use tax on pickup — dealer review required
+      taxLine = { label: 'CA sales tax', value: 'Dealer review required', note: 'Tax may depend on how the vehicle leaves California' };
+    }
+
+    // Out-of-state tax note for registration state
+    let outOfStateTaxLine: { label: string; value: string; note?: string } | null = null;
+    if (!regIsCA && regZip.length === 5) {
+      if (regIsNV) {
+        const nvTax = Math.round(subtotal * SAMPLE_NV_TAX_RATE);
+        outOfStateTaxLine = { label: 'Est. NV use tax (~8.25%)', value: `~$${nvTax.toLocaleString()}`, note: 'Sample estimate · You may owe this to Nevada when you register' };
+      } else {
+        outOfStateTaxLine = { label: 'Registration-state tax', value: 'Varies by state', note: 'You may owe sales/use tax in the state where you register' };
+      }
     }
 
     // Title & registration
     let regLine: { label: string; value: string; note?: string };
     if (regIsCA) {
-      regLine = { label: 'Est. CA title & registration', value: `~$${SAMPLE_CA_REG}`, note: 'Sample estimate · Dealer to confirm' };
+      regLine = { label: 'Est. CA title & registration', value: `~$${SAMPLE_CA_REG}`, note: 'Sample estimate · Dealer review required' };
+    } else if (regIsNV) {
+      regLine = { label: 'Est. NV title & registration', value: `~$${SAMPLE_NV_REG}`, note: 'Sample estimate · Paid to Nevada DMV' };
     } else if (regZip.length === 5) {
-      regLine = { label: 'Title & registration', value: 'Dealer to confirm', note: 'Fees vary by state' };
+      regLine = { label: 'Title & registration', value: 'Dealer review required', note: 'Fees vary by state' };
     } else {
       regLine = { label: 'Title & registration', value: 'Enter ZIP above' };
     }
@@ -77,21 +176,29 @@ export default function ExampleAuctionPage() {
     // Shipping
     let shipLine: { label: string; value: string; note?: string } | null = null;
     if (!isPickup && destZip.length === 5) {
-      // Sample shipping estimates by rough distance from LA
       const destN = parseInt(destZip.slice(0, 3), 10);
       let shipEst = '';
       if (destIsCA) { shipEst = '$350–$600'; }
-      else if (destN >= 850 && destN <= 870) { shipEst = '$500–$800'; } // AZ/NV
-      else if (destN >= 970 && destN <= 979) { shipEst = '$600–$900'; } // OR/WA
-      else if (destN >= 750 && destN <= 799) { shipEst = '$800–$1,200'; } // TX
-      else if (destN >= 100 && destN <= 149) { shipEst = '$1,200–$1,800'; } // NY
+      else if (destN >= 850 && destN <= 870) { shipEst = '$500–$800'; }
+      else if (destN >= 889 && destN <= 898) { shipEst = '$500–$800'; }
+      else if (destN >= 970 && destN <= 979) { shipEst = '$600–$900'; }
+      else if (destN >= 750 && destN <= 799) { shipEst = '$800–$1,200'; }
+      else if (destN >= 100 && destN <= 149) { shipEst = '$1,200–$1,800'; }
       else { shipEst = '$800–$1,500'; }
       shipLine = { label: 'Est. shipping', value: shipEst, note: 'From Los Angeles, CA · Quoted separately' };
     } else if (!isPickup) {
       shipLine = { label: 'Shipping', value: 'Enter destination ZIP' };
     }
 
-    return { taxLine, regLine, shipLine };
+    return { taxLine, outOfStateTaxLine, regLine, shipLine, buyerZip, destZip, regZip, isPickup, destIsCA, regIsCA };
+  };
+
+  const canShowEstimate = () => {
+    if (!customMode) return true;
+    if (estZip.length < 5) return false;
+    if (estDelivery === 'ship' && estDestZip.length < 5) return false;
+    if (estRegZipDifferent && estRegZip.length < 5) return false;
+    return true;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -229,7 +336,7 @@ export default function ExampleAuctionPage() {
                 </div>
               </div>
 
-              {/* Repairs — clearly showing they're included */}
+              {/* Repairs */}
               <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
                 <div className="flex items-center gap-2 mb-1">
                   <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
@@ -279,119 +386,177 @@ export default function ExampleAuctionPage() {
                 </div>
                 <p className="text-sm text-gray-500 mb-5">Enter your ZIP code and choose pickup or shipping to see estimated costs. The selling dealer will confirm and collect applicable taxes and DMV fees at the time of purchase. Shipping is quoted separately.</p>
 
-                {/* ZIP + delivery selector */}
-                <div className="space-y-4 mb-5">
-                  <div>
-                    <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">Your ZIP Code</label>
-                    <input
-                      type="text"
-                      inputMode="numeric"
-                      maxLength={5}
-                      placeholder="e.g. 90210"
-                      value={estZip}
-                      onChange={(e) => { setEstZip(e.target.value.replace(/\D/g, '').slice(0, 5)); setShowEstimate(false); }}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-curb-orange text-sm"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">How do you want your car?</label>
-                    <div className="grid grid-cols-2 gap-3">
+                {/* Demo scenario tabs */}
+                <div className="mb-5">
+                  <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">Try a scenario</label>
+                  <div className="flex flex-wrap gap-2">
+                    {DEMO_SCENARIOS.map((s) => (
                       <button
-                        onClick={() => { setEstDelivery('pickup'); setShowEstimate(false); }}
-                        className={`py-3 px-4 rounded-xl text-sm font-semibold border-2 transition ${estDelivery === 'pickup' ? 'border-curb-orange bg-orange-50 text-curb-orange' : 'border-gray-200 text-gray-600 hover:border-gray-300'}`}
+                        key={s.key}
+                        onClick={() => selectScenario(s.key)}
+                        className={`px-3.5 py-2 rounded-lg text-xs font-semibold border-2 transition ${
+                          !customMode && activeScenario === s.key
+                            ? 'border-purple-500 bg-purple-50 text-purple-700'
+                            : 'border-gray-200 text-gray-600 hover:border-gray-300'
+                        }`}
                       >
-                        <span className="block text-lg mb-0.5">🏢</span>
-                        Dealer pickup
+                        {s.short}
                       </button>
-                      <button
-                        onClick={() => { setEstDelivery('ship'); setShowEstimate(false); }}
-                        className={`py-3 px-4 rounded-xl text-sm font-semibold border-2 transition ${estDelivery === 'ship' ? 'border-curb-orange bg-orange-50 text-curb-orange' : 'border-gray-200 text-gray-600 hover:border-gray-300'}`}
-                      >
-                        <span className="block text-lg mb-0.5">🚚</span>
-                        Ship to me
-                      </button>
-                    </div>
+                    ))}
+                    <button
+                      onClick={() => setCustomMode(true)}
+                      className={`px-3.5 py-2 rounded-lg text-xs font-semibold border-2 transition ${
+                        customMode
+                          ? 'border-purple-500 bg-purple-50 text-purple-700'
+                          : 'border-gray-200 text-gray-600 hover:border-gray-300'
+                      }`}
+                    >
+                      Custom ZIP
+                    </button>
                   </div>
+                </div>
 
-                  {estDelivery === 'ship' && (
+                {/* Scenario description */}
+                {!customMode && (
+                  <div className="mb-5 p-3 bg-purple-50 rounded-lg">
+                    <p className="text-sm text-purple-800 font-medium">{DEMO_SCENARIOS.find(s => s.key === activeScenario)!.label}</p>
+                    <p className="text-xs text-purple-600 mt-1">{DEMO_SCENARIOS.find(s => s.key === activeScenario)!.desc}</p>
+                  </div>
+                )}
+
+                {/* Custom ZIP inputs */}
+                {customMode && (
+                  <div className="space-y-4 mb-5">
                     <div>
-                      <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">Destination ZIP</label>
+                      <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">Your ZIP Code</label>
                       <input
                         type="text"
                         inputMode="numeric"
                         maxLength={5}
-                        placeholder="Where should we ship it?"
-                        value={estDestZip}
-                        onChange={(e) => { setEstDestZip(e.target.value.replace(/\D/g, '').slice(0, 5)); setShowEstimate(false); }}
+                        placeholder="e.g. 90210"
+                        value={estZip}
+                        onChange={(e) => setEstZip(e.target.value.replace(/\D/g, '').slice(0, 5))}
                         className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-curb-orange text-sm"
                       />
                     </div>
-                  )}
 
-                  <div>
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={estRegZipDifferent}
-                        onChange={(e) => { setEstRegZipDifferent(e.target.checked); setShowEstimate(false); }}
-                        className="w-4 h-4 rounded border-gray-300 text-curb-orange focus:ring-curb-orange"
-                      />
-                      <span className="text-sm text-gray-600">I&apos;ll register this vehicle in a different ZIP</span>
-                    </label>
-                    {estRegZipDifferent && (
-                      <input
-                        type="text"
-                        inputMode="numeric"
-                        maxLength={5}
-                        placeholder="Registration ZIP"
-                        value={estRegZip}
-                        onChange={(e) => { setEstRegZip(e.target.value.replace(/\D/g, '').slice(0, 5)); setShowEstimate(false); }}
-                        className="w-full mt-2 px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-curb-orange text-sm"
-                      />
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">How do you want your car?</label>
+                      <div className="grid grid-cols-2 gap-3">
+                        <button
+                          onClick={() => setEstDelivery('pickup')}
+                          className={`py-3 px-4 rounded-xl text-sm font-semibold border-2 transition ${estDelivery === 'pickup' ? 'border-curb-orange bg-orange-50 text-curb-orange' : 'border-gray-200 text-gray-600 hover:border-gray-300'}`}
+                        >
+                          <span className="block text-lg mb-0.5">🏢</span>
+                          Dealer pickup
+                        </button>
+                        <button
+                          onClick={() => setEstDelivery('ship')}
+                          className={`py-3 px-4 rounded-xl text-sm font-semibold border-2 transition ${estDelivery === 'ship' ? 'border-curb-orange bg-orange-50 text-curb-orange' : 'border-gray-200 text-gray-600 hover:border-gray-300'}`}
+                        >
+                          <span className="block text-lg mb-0.5">🚚</span>
+                          Ship to me
+                        </button>
+                      </div>
+                    </div>
+
+                    {estDelivery === 'ship' && (
+                      <div>
+                        <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">Destination ZIP</label>
+                        <input
+                          type="text"
+                          inputMode="numeric"
+                          maxLength={5}
+                          placeholder="Where should we ship it?"
+                          value={estDestZip}
+                          onChange={(e) => setEstDestZip(e.target.value.replace(/\D/g, '').slice(0, 5))}
+                          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-curb-orange text-sm"
+                        />
+                      </div>
                     )}
+
+                    <div>
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={estRegZipDifferent}
+                          onChange={(e) => setEstRegZipDifferent(e.target.checked)}
+                          className="w-4 h-4 rounded border-gray-300 text-curb-orange focus:ring-curb-orange"
+                        />
+                        <span className="text-sm text-gray-600">I&apos;ll register this vehicle in a different ZIP</span>
+                      </label>
+                      {estRegZipDifferent && (
+                        <input
+                          type="text"
+                          inputMode="numeric"
+                          maxLength={5}
+                          placeholder="Registration ZIP"
+                          value={estRegZip}
+                          onChange={(e) => setEstRegZip(e.target.value.replace(/\D/g, '').slice(0, 5))}
+                          className="w-full mt-2 px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-curb-orange text-sm"
+                        />
+                      )}
+                    </div>
                   </div>
+                )}
 
-                  <button
-                    onClick={() => setShowEstimate(true)}
-                    disabled={estZip.length < 5 || (estDelivery === 'ship' && estDestZip.length < 5) || (estRegZipDifferent && estRegZip.length < 5)}
-                    className="w-full py-3 bg-curb-navy text-white rounded-xl font-semibold text-sm hover:bg-slate-800 transition disabled:opacity-40 disabled:cursor-not-allowed"
-                  >
-                    Show Estimate
-                  </button>
-                </div>
-
-                {/* Estimate results */}
-                {showEstimate && (() => {
-                  const { taxLine, regLine, shipLine } = getEstimate();
+                {/* Estimate results — always shown for demo scenarios, gated for custom */}
+                {canShowEstimate() && (() => {
+                  const { taxLine, outOfStateTaxLine, regLine, shipLine, isPickup, destIsCA } = getEstimate();
                   return (
-                    <div className="border-t border-gray-200 pt-5">
+                    <div className={customMode ? 'border-t border-gray-200 pt-5' : ''}>
                       <div className="flex items-center gap-1.5 mb-3">
                         <span className="text-xs font-bold text-purple-600 uppercase tracking-wider">Sample Estimate</span>
                         <span className="text-xs text-gray-400">· For illustration only</span>
                       </div>
 
                       <div className="bg-gray-50 rounded-xl p-4 space-y-3">
-                        {/* Subtotal */}
+                        {/* Bid + repairs + premium breakdown */}
                         <div className="flex justify-between text-sm">
-                          <span className="text-gray-600">Vehicle subtotal</span>
-                          <span className="font-semibold text-curb-navy">$20,270</span>
+                          <span className="text-gray-600">Your bid</span>
+                          <span className="font-semibold text-curb-navy">${bidAmount.toLocaleString()}</span>
                         </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-600">Required repairs</span>
+                          <span className="font-semibold text-curb-navy">${REPAIRS_TOTAL.toLocaleString()}</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-600">Buyer premium (3%)</span>
+                          <span className="font-semibold text-curb-navy">${premium.toLocaleString()}</span>
+                        </div>
+                        <div className="border-t border-gray-200 pt-2.5 flex justify-between">
+                          <span className="font-bold text-curb-navy">Subtotal</span>
+                          <span className="font-bold text-curb-navy">${subtotal.toLocaleString()}</span>
+                        </div>
+
+                        {/* Separator */}
+                        <div className="border-t border-gray-200 pt-2.5" />
 
                         {/* Tax */}
                         <div>
                           <div className="flex justify-between text-sm">
                             <span className="text-gray-600">{taxLine.label}</span>
-                            <span className="font-semibold text-curb-navy">{taxLine.value}</span>
+                            <span className={`font-semibold ${taxLine.value === 'Dealer review required' ? 'text-amber-600' : 'text-curb-navy'}`}>{taxLine.value}</span>
                           </div>
                           {taxLine.note && <p className="text-xs text-gray-400 mt-0.5">{taxLine.note}</p>}
                         </div>
+
+                        {/* Out-of-state tax */}
+                        {outOfStateTaxLine && (
+                          <div>
+                            <div className="flex justify-between text-sm">
+                              <span className="text-gray-600">{outOfStateTaxLine.label}</span>
+                              <span className="font-semibold text-amber-600">{outOfStateTaxLine.value}</span>
+                            </div>
+                            {outOfStateTaxLine.note && <p className="text-xs text-gray-400 mt-0.5">{outOfStateTaxLine.note}</p>}
+                          </div>
+                        )}
 
                         {/* Title & reg */}
                         <div>
                           <div className="flex justify-between text-sm">
                             <span className="text-gray-600">{regLine.label}</span>
-                            <span className="font-semibold text-curb-navy">{regLine.value}</span>
+                            <span className={`font-semibold ${regLine.value === 'Dealer review required' ? 'text-amber-600' : 'text-curb-navy'}`}>{regLine.value}</span>
                           </div>
                           {regLine.note && <p className="text-xs text-gray-400 mt-0.5">{regLine.note}</p>}
                         </div>
@@ -410,7 +575,7 @@ export default function ExampleAuctionPage() {
                         {/* Divider + note */}
                         <div className="border-t border-gray-200 pt-3">
                           <p className="text-xs text-gray-500 leading-relaxed">
-                            {estDelivery === 'ship' && !isCaliforniaZip(estDestZip) && (
+                            {!isPickup && !destIsCA && (
                               <span className="block mb-2 text-blue-600 font-medium">For qualifying deliveries outside California, California sales tax generally doesn&apos;t apply. You may still owe taxes and registration fees in the state where you register the vehicle.</span>
                             )}
                             <span className="font-semibold text-curb-navy">At checkout:</span> The selling dealer will confirm the taxable amount, applicable fees, and delivery terms before presenting the final purchase total.
@@ -420,6 +585,63 @@ export default function ExampleAuctionPage() {
                     </div>
                   );
                 })()}
+              </div>
+
+              {/* Before You Fund Escrow — pre-escrow confirmation */}
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                <div className="flex items-center gap-2 mb-1">
+                  <div className="w-8 h-8 bg-amber-100 rounded-lg flex items-center justify-center">
+                    <svg className="w-4 h-4 text-amber-600" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
+                  </div>
+                  <h2 className="text-xl font-bold text-curb-navy">Before You Fund Escrow</h2>
+                </div>
+                <p className="text-sm text-gray-500 mb-5">After you win the auction, the dealer reviews your purchase and confirms the final numbers before you fund escrow. Here&apos;s what that looks like.</p>
+
+                <div className="bg-amber-50 border border-amber-200 rounded-xl p-5 space-y-4">
+                  <div className="flex items-center gap-2 mb-1">
+                    <svg className="w-4 h-4 text-amber-600" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor"><path d="M5 13l4 4L19 7" /></svg>
+                    <span className="text-sm font-bold text-amber-800">Dealer-Confirmed Purchase Summary</span>
+                    <span className="text-xs text-amber-500 ml-auto">Sample</span>
+                  </div>
+
+                  <div className="bg-white rounded-lg p-4 space-y-2.5">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Winning bid</span>
+                      <span className="font-semibold text-curb-navy">${bidAmount.toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Required repairs</span>
+                      <span className="font-semibold text-curb-navy">${REPAIRS_TOTAL.toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Buyer premium (3%)</span>
+                      <span className="font-semibold text-curb-navy">${premium.toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">CA sales tax (confirmed 9.5%)</span>
+                      <span className="font-semibold text-curb-navy">${Math.round(subtotal * SAMPLE_CA_TAX_RATE).toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">CA title & registration</span>
+                      <span className="font-semibold text-curb-navy">${SAMPLE_CA_REG.toLocaleString()}</span>
+                    </div>
+                    <div className="border-t border-gray-200 pt-2.5 flex justify-between">
+                      <span className="font-bold text-curb-navy">Total due at purchase</span>
+                      <span className="font-bold text-curb-navy text-lg">${(subtotal + Math.round(subtotal * SAMPLE_CA_TAX_RATE) + SAMPLE_CA_REG).toLocaleString()}</span>
+                    </div>
+                  </div>
+
+                  <div className="bg-white rounded-lg p-4">
+                    <p className="text-xs font-semibold text-amber-800 mb-2">What you may owe separately</p>
+                    <p className="text-xs text-gray-600 leading-relaxed">
+                      If you register the vehicle in a different state, you may owe that state&apos;s sales/use tax and registration fees directly. These are not collected by the dealer through Curb. The dealer confirms what&apos;s included in the total above, and anything outside their scope is noted here so there are no surprises.
+                    </p>
+                  </div>
+
+                  <p className="text-xs text-amber-700 leading-relaxed">
+                    This is a sample of the confirmation you&apos;ll see before funding escrow. The dealer reviews your delivery choice, confirms the taxable amount, and locks in the total. You won&apos;t be asked to fund until every line item is confirmed.
+                  </p>
+                </div>
               </div>
 
               {/* What happens after you win */}
@@ -435,27 +657,34 @@ export default function ExampleAuctionPage() {
                   {[
                     {
                       step: 1,
+                      title: 'Dealer Confirms Total',
+                      time: 'Within 24 hours',
+                      desc: 'The dealer reviews your delivery choice and confirms the final purchase total — taxes, registration fees, and shipping (if applicable). You see every line item before funding.',
+                      icon: '📋',
+                    },
+                    {
+                      step: 2,
                       title: 'Fund Escrow',
                       time: 'Within 48 hours',
                       desc: 'Your payment goes into a secure escrow account — not to the dealer. The funds are held by Escrow.com and only released when you approve the car.',
                       icon: '🔒',
                     },
                     {
-                      step: 2,
+                      step: 3,
                       title: 'Dealer Completes Repairs',
                       time: '5–7 business days',
                       desc: 'The dealer performs all listed repairs at their service center. You\'ll receive photo updates and can message the dealer with questions through Curb.',
                       icon: '🔧',
                     },
                     {
-                      step: 3,
+                      step: 4,
                       title: 'Review & Approve',
                       time: 'Before delivery',
                       desc: 'Once repairs are done, you review the completed work with photos and documentation. You approve the repairs before anything ships — if something isn\'t right, the dealer fixes it.',
                       icon: '✅',
                     },
                     {
-                      step: 4,
+                      step: 5,
                       title: 'Pickup or Delivery',
                       time: 'Your choice',
                       desc: 'Pick up from the dealer in person, or arrange delivery to your door. Once you have the car and confirm everything looks good, escrow releases payment to the dealer.',
@@ -467,7 +696,7 @@ export default function ExampleAuctionPage() {
                         <div className="w-10 h-10 bg-curb-orange/10 rounded-full flex items-center justify-center text-lg flex-shrink-0">
                           {step.icon}
                         </div>
-                        {i < 3 && <div className="w-0.5 h-full bg-curb-orange/20 my-1" />}
+                        {i < 4 && <div className="w-0.5 h-full bg-curb-orange/20 my-1" />}
                       </div>
                       <div className="pb-6 last:pb-0">
                         <div className="flex items-center gap-2 mb-1">
@@ -512,39 +741,51 @@ export default function ExampleAuctionPage() {
                   <span className="font-semibold text-sm">2d 14h left (example)</span>
                 </div>
 
-                {/* Pricing breakdown */}
+                {/* Editable bid */}
                 <div className="mb-5">
-                  <p className="text-xs text-gray-500 mb-1">Current Bid</p>
-                  <p className="text-4xl font-bold text-curb-orange">$18,500</p>
-                  <p className="text-sm text-gray-500 mt-1">8 bids</p>
+                  <label className="text-xs text-gray-500 mb-1 block">Your Bid Amount</label>
+                  <div className="relative">
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-2xl font-bold text-curb-orange">$</span>
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      value={bidInput}
+                      onChange={(e) => handleBidChange(e.target.value)}
+                      onBlur={() => setBidInput(bidAmount > 0 ? bidAmount.toLocaleString() : '')}
+                      className="w-full pl-10 pr-4 py-3 text-3xl font-bold text-curb-orange border-2 border-gray-200 rounded-xl focus:outline-none focus:border-curb-orange focus:ring-2 focus:ring-curb-orange/20 transition"
+                    />
+                  </div>
+                  <p className="text-xs text-gray-400 mt-1">Change the bid to recalculate estimates</p>
                 </div>
 
                 <div className="bg-gray-50 rounded-xl p-4 mb-5 space-y-2.5">
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Winning bid</span>
-                    <span className="font-semibold text-curb-navy">$18,500</span>
+                    <span className="text-gray-600">Your bid</span>
+                    <span className="font-semibold text-curb-navy">${bidAmount.toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600">Required repairs</span>
-                    <span className="font-semibold text-curb-navy">$1,215</span>
+                    <span className="font-semibold text-curb-navy">${REPAIRS_TOTAL.toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600">Buyer premium (3%)</span>
-                    <span className="font-semibold text-curb-navy">$555</span>
+                    <span className="font-semibold text-curb-navy">${premium.toLocaleString()}</span>
                   </div>
                   <div className="border-t border-gray-200 pt-2.5 flex justify-between">
                     <span className="font-bold text-curb-navy">Subtotal</span>
-                    <span className="font-bold text-curb-navy text-lg">$20,270</span>
+                    <span className="font-bold text-curb-navy text-lg">${subtotal.toLocaleString()}</span>
                   </div>
                   <p className="text-xs text-gray-400">Before taxes, registration & shipping</p>
                 </div>
 
                 {/* Savings callout */}
-                <div className="bg-green-50 border border-green-200 rounded-xl p-4 mb-5 text-center">
-                  <p className="text-xs text-green-600 font-semibold uppercase tracking-wider mb-1">Your Savings vs. Retail</p>
-                  <p className="text-3xl font-bold text-green-600">$3,730</p>
-                  <p className="text-xs text-green-600 mt-1">Retail value: <span className="line-through">$24,000</span></p>
-                </div>
+                {savings > 0 && (
+                  <div className="bg-green-50 border border-green-200 rounded-xl p-4 mb-5 text-center">
+                    <p className="text-xs text-green-600 font-semibold uppercase tracking-wider mb-1">Your Savings vs. Retail</p>
+                    <p className="text-3xl font-bold text-green-600">${savings.toLocaleString()}</p>
+                    <p className="text-xs text-green-600 mt-1">Retail value: <span className="line-through">${RETAIL_VALUE.toLocaleString()}</span></p>
+                  </div>
+                )}
 
                 {/* Primary CTA */}
                 <button
