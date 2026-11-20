@@ -1,12 +1,11 @@
 'use client';
 
 import { useState, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 
 function LoginContent() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const redirect = searchParams.get('redirect');
   const [email, setEmail] = useState('');
@@ -41,17 +40,15 @@ function LoginContent() {
         .single() as { data: { role: string } | null };
 
       if (redirect) {
-        router.push(redirect);
+        window.location.href = redirect;
       } else if (profile?.role === 'dealer') {
-        router.push('/dealer/dashboard');
+        window.location.href = '/dealer/dashboard';
       } else if (profile?.role === 'admin') {
-        router.push('/admin/dashboard');
+        window.location.href = '/admin/dashboard';
       } else {
-        router.push('/browse');
+        window.location.href = '/browse';
       }
     }
-
-    router.refresh();
   };
 
   const handleGoogleLogin = async () => {
