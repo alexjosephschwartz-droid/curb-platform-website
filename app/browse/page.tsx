@@ -31,7 +31,8 @@ const SAMPLE_AUCTIONS: AuctionListing[] = [
     ends_at: new Date(Date.now() + 43200000).toISOString(), // 12h left
     vehicles: {
       id: 'v1', year: 2020, make: 'Honda', model: 'Accord', trim: 'Sport',
-      mileage: 42150, exterior_color: 'Crystal Black Pearl', photos: null,
+      mileage: 42150, exterior_color: 'Crystal Black Pearl',
+      photos: ['https://images.unsplash.com/photo-1634737581963-5a22ba471961?w=800&h=480&fit=crop&auto=format&q=80'],
       condition_notes: 'Clean trade-in, minor wear on driver seat',
     },
   },
@@ -40,7 +41,8 @@ const SAMPLE_AUCTIONS: AuctionListing[] = [
     ends_at: new Date(Date.now() + 172800000).toISOString(), // 2d left
     vehicles: {
       id: 'v2', year: 2021, make: 'Tesla', model: 'Model 3', trim: 'Long Range',
-      mileage: 28300, exterior_color: 'Pearl White', photos: null,
+      mileage: 28300, exterior_color: 'Pearl White',
+      photos: ['https://images.unsplash.com/photo-1560958089-b8a1929cea89?w=800&h=480&fit=crop&auto=format&q=80'],
       condition_notes: 'Excellent condition, full self-driving capable',
     },
   },
@@ -49,7 +51,8 @@ const SAMPLE_AUCTIONS: AuctionListing[] = [
     ends_at: new Date(Date.now() + 86400000).toISOString(), // 1d left
     vehicles: {
       id: 'v3', year: 2020, make: 'Jeep', model: 'Grand Cherokee', trim: 'Limited',
-      mileage: 51200, exterior_color: 'Slate Blue', photos: null,
+      mileage: 51200, exterior_color: 'Slate Blue',
+      photos: ['https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?w=800&h=480&fit=crop&auto=format&q=80'],
       condition_notes: 'Well-maintained, one owner, clean Carfax',
     },
   },
@@ -58,7 +61,8 @@ const SAMPLE_AUCTIONS: AuctionListing[] = [
     ends_at: new Date(Date.now() + 28800000).toISOString(), // 8h left
     vehicles: {
       id: 'v4', year: 2021, make: 'Ford', model: 'F-150', trim: 'XLT SuperCrew',
-      mileage: 38500, exterior_color: 'Rapid Red', photos: null,
+      mileage: 38500, exterior_color: 'Rapid Red',
+      photos: ['https://images.unsplash.com/photo-1590362891991-f776e747a588?w=800&h=480&fit=crop&auto=format&q=80'],
       condition_notes: 'Fleet vehicle, well-maintained, bed liner included',
     },
   },
@@ -67,7 +71,8 @@ const SAMPLE_AUCTIONS: AuctionListing[] = [
     ends_at: new Date(Date.now() + 129600000).toISOString(), // 1.5d left
     vehicles: {
       id: 'v5', year: 2022, make: 'Toyota', model: 'RAV4', trim: 'XLE Premium',
-      mileage: 19800, exterior_color: 'Magnetic Gray', photos: null,
+      mileage: 19800, exterior_color: 'Magnetic Gray',
+      photos: ['https://images.unsplash.com/photo-1581540222194-0def2dda95b8?w=800&h=480&fit=crop&auto=format&q=80'],
       condition_notes: 'Low mileage lease return, excellent condition',
     },
   },
@@ -76,7 +81,8 @@ const SAMPLE_AUCTIONS: AuctionListing[] = [
     ends_at: new Date(Date.now() + 57600000).toISOString(), // 16h left
     vehicles: {
       id: 'v6', year: 2019, make: 'Mazda', model: 'CX-5', trim: 'Touring',
-      mileage: 55600, exterior_color: 'Soul Red Crystal', photos: null,
+      mileage: 55600, exterior_color: 'Soul Red Crystal',
+      photos: ['https://images.unsplash.com/photo-1612544448445-b8232cff3b6c?w=800&h=480&fit=crop&auto=format&q=80'],
       condition_notes: 'Single owner, all maintenance records available',
     },
   },
@@ -85,7 +91,8 @@ const SAMPLE_AUCTIONS: AuctionListing[] = [
     ends_at: new Date(Date.now() + 194400000).toISOString(), // 2.25d left
     vehicles: {
       id: 'v7', year: 2020, make: 'Hyundai', model: 'Tucson', trim: 'SEL',
-      mileage: 44200, exterior_color: 'Amazon Gray', photos: null,
+      mileage: 44200, exterior_color: 'Amazon Gray',
+      photos: ['https://images.unsplash.com/photo-1642912832910-7d403ce697e1?w=800&h=480&fit=crop&auto=format&q=80'],
       condition_notes: 'Trade-in, runs great, clean interior',
     },
   },
@@ -94,7 +101,8 @@ const SAMPLE_AUCTIONS: AuctionListing[] = [
     ends_at: new Date(Date.now() + 64800000).toISOString(), // 18h left
     vehicles: {
       id: 'v8', year: 2022, make: 'BMW', model: 'X3', trim: 'xDrive30i',
-      mileage: 22100, exterior_color: 'Alpine White', photos: null,
+      mileage: 22100, exterior_color: 'Alpine White',
+      photos: ['https://images.unsplash.com/photo-1556189250-72ba954cfc2b?w=800&h=480&fit=crop&auto=format&q=80'],
       condition_notes: 'Lease return, M Sport package, premium features',
     },
   },
@@ -103,7 +111,8 @@ const SAMPLE_AUCTIONS: AuctionListing[] = [
     ends_at: new Date(Date.now() + 259200000).toISOString(), // 3d left
     vehicles: {
       id: 'v9', year: 2019, make: 'Chevrolet', model: 'Equinox', trim: 'LT',
-      mileage: 62300, exterior_color: 'Nightfall Gray', photos: null,
+      mileage: 62300, exterior_color: 'Nightfall Gray',
+      photos: ['https://images.unsplash.com/photo-1614220654876-8a75c41f7a7c?w=800&h=480&fit=crop&auto=format&q=80'],
       condition_notes: 'Higher mileage but mechanically solid, new brakes',
     },
   },
@@ -229,8 +238,8 @@ export default function BrowseAuctions() {
             const price = auction.current_bid || auction.starting_price;
             const isEnding = new Date(auction.ends_at).getTime() - Date.now() < 43200000; // < 12h
             return (
-              <div key={auction.id}
-                className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md hover:border-curb-orange/30 transition group cursor-pointer">
+              <Link href={`/vehicle/${auction.id}`} key={auction.id}
+                className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md hover:border-curb-orange/30 transition group cursor-pointer block">
                 <div className="relative">
                   {v.photos && v.photos.length > 0 ? (
                     <img src={v.photos[0]} alt={`${v.year} ${v.make} ${v.model}`}
@@ -271,7 +280,7 @@ export default function BrowseAuctions() {
                     </div>
                   </div>
                 </div>
-              </div>
+              </Link>
             );
           })}
         </div>
