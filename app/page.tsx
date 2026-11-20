@@ -63,9 +63,9 @@ export default function Home() {
             </div>
 
             {/* Right: example listing card */}
-            <div className="relative">
+            <Link href="/example" className="relative block">
               <div className="absolute -inset-4 bg-gradient-to-br from-curb-orange/20 to-blue-500/10 rounded-3xl blur-2xl"></div>
-              <div className="relative bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden group hover:shadow-3xl transition-shadow duration-500">
+              <div className="relative bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden group hover:shadow-3xl transition-shadow duration-500 cursor-pointer">
                 <div className="bg-gray-100 h-56 sm:h-64 relative overflow-hidden">
                   <Image
                     src="https://images.unsplash.com/photo-1555215695-3004980ad54e?w=1200&auto=format&fit=crop"
@@ -73,9 +73,9 @@ export default function Home() {
                     fill
                     className="object-cover group-hover:scale-105 transition-transform duration-700"
                   />
-                  <div className="absolute top-4 left-4 px-3 py-1 bg-green-500 text-white text-xs font-bold rounded-full flex items-center gap-1.5">
-                    <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse"></span>
-                    Live Auction
+                  <div className="absolute top-4 left-4 px-3 py-1 bg-blue-500 text-white text-xs font-bold rounded-full flex items-center gap-1.5">
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    Example Auction
                   </div>
                   <div className="absolute top-4 right-4 px-3 py-1 bg-black/60 backdrop-blur-sm text-white text-xs font-semibold rounded-full">
                     2d 14h left
@@ -109,7 +109,7 @@ export default function Home() {
                   </div>
                 </div>
               </div>
-            </div>
+            </Link>
           </div>
         </div>
       </section>
