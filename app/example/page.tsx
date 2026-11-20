@@ -875,7 +875,7 @@ export default function ExampleAuctionPage() {
                           <p className="text-xs font-bold text-curb-navy mb-2">Proxy bid confirmation</p>
                           <div className="grid grid-cols-2 gap-3">
                             <div className="bg-white rounded-lg p-3 text-center">
-                              <p className="text-xs text-gray-500 mb-0.5">Max vehicle bid</p>
+                              <p className="text-xs text-gray-500 mb-0.5">{allIn.allKnown ? 'Max vehicle bid' : 'Estimated max vehicle bid'}</p>
                               <p className="text-xl font-bold text-indigo-700">${effectiveMax.toLocaleString()}</p>
                               <p className="text-xs text-gray-400">Private · ${inc} increments</p>
                             </div>
@@ -1065,53 +1065,38 @@ export default function ExampleAuctionPage() {
                 <p className="text-sm text-gray-500 mb-5">After you win the auction, the dealer reviews your purchase and confirms the final numbers before you fund escrow. Here&apos;s what that looks like.</p>
 
                 {(() => {
-                  const est = canShowEstimate() ? getEstimate() : null;
+                  // Derive the escrow bid from proxy state
+                  const proxyEffMax = roundDownToIncrement(proxyMode === 'max-bid' ? proxyMaxBid : computeMaxBidFromBudget(proxyBudget));
+                  const proxyInc = getBidIncrement(proxyEffMax);
+                  const escrowBid = proxyOutcome === 'won' ? proxyEffMax - proxyInc : bidAmount;
+                  const escrowCost = computeAllInCost(escrowBid);
+                  const escrowPrem = Math.round(escrowBid * 0.03);
+                  const escrowSub = escrowBid + REPAIRS_TOTAL + escrowPrem;
+                  const isProxyWin = proxyOutcome === 'won' && proxyEffMax > 0;
 
                   // Determine scenario label for context
+                  const est = canShowEstimate() ? getEstimate() : null;
                   const scenarioLabel = !est ? 'California Pickup' : est.isPickup
                     ? (est.destIsCA ? 'California Pickup' : `Pickup in CA · Registering ${isNevadaZip(est.regZip) ? 'in NV' : 'out of state'}`)
                     : (est.destIsCA ? 'Shipping within CA' : `Shipping to ${isNevadaZip(est.destZip) ? 'Nevada' : 'ZIP ' + est.destZip}`);
 
-                  // Build the "What you may owe separately" items
-                  const separateItems: { label: string; value: string; note?: string }[] = [];
-                  if (est) {
-                    // Shipping is always quoted separately
-                    if (est.shipLine && est.shipLine.amount === null && est.shipLine.value !== 'Enter destination ZIP') {
-                      separateItems.push({ label: est.shipLine.label, value: est.shipLine.value, note: est.shipLine.note });
-                    }
-                    // Out-of-state tax when it's informational (not included in purchase total collected by dealer)
-                    if (est.outOfStateTaxLine && est.outOfStateTaxLine.amount !== null) {
-                      separateItems.push({ label: est.outOfStateTaxLine.label, value: est.outOfStateTaxLine.value, note: est.outOfStateTaxLine.note });
-                    }
-                    if (est.outOfStateTaxLine && est.outOfStateTaxLine.amount === null) {
-                      separateItems.push({ label: est.outOfStateTaxLine.label, value: est.outOfStateTaxLine.value, note: est.outOfStateTaxLine.note });
-                    }
-                    // Registration when pending/unknown
-                    if (est.regLine.amount === null && est.regLine.value !== 'Enter ZIP above') {
-                      separateItems.push({ label: est.regLine.label, value: est.regLine.value, note: est.regLine.note });
-                    }
-                    // Tax when pending
-                    if (est.taxLine.amount === null) {
-                      separateItems.push({ label: est.taxLine.label, value: est.taxLine.value, note: est.taxLine.note });
-                    }
-                  }
-
                   // NV buyer picking up in CA — special credit flag
                   const nvPickupCaCredit = est && est.isPickup && est.destIsCA && !est.regIsCA && isNevadaZip(est.regZip);
 
-                  // Compute escrow total (what dealer collects at purchase)
-                  // Include: subtotal + CA tax (if confirmed) + registration (if confirmed/CA/NV)
-                  let escrowTotal = subtotal;
-                  let escrowPending = false;
-                  if (est) {
-                    if (est.taxLine.amount !== null) escrowTotal += est.taxLine.amount;
-                    else escrowPending = true;
-                    if (est.regLine.amount !== null) escrowTotal += est.regLine.amount;
-                    else escrowPending = true;
-                  } else {
-                    // Default CA scenario
-                    escrowTotal += Math.round(subtotal * SAMPLE_CA_TAX_RATE) + SAMPLE_CA_REG;
-                  }
+                  // Categorize breakdown lines
+                  // "Due at purchase" = items with known amounts that the dealer collects at escrow (bid, repairs, premium, CA tax, registration)
+                  // "Paid separately" = items with known amounts payable in buyer's state (NV use tax, shipping)
+                  // "Pending confirmation" = items with null amount
+                  const dueAtPurchase = escrowCost.breakdown.filter(item =>
+                    item.amount !== null && !item.note?.includes('Payable to NV') && !item.label.includes('shipping')
+                  );
+                  const paidSeparately = escrowCost.breakdown.filter(item =>
+                    item.amount !== null && (item.note?.includes('Payable to NV') || item.label.includes('shipping'))
+                  );
+                  const pendingConfirmation = escrowCost.breakdown.filter(item => item.amount === null);
+
+                  // "Due at purchase" total — sum of amounts in that category
+                  const dueTotal = dueAtPurchase.reduce((sum, item) => sum + (item.amount ?? 0), 0);
 
                   return (
                   <div className="bg-amber-50 border border-amber-200 rounded-xl p-5 space-y-4">
@@ -1121,48 +1106,35 @@ export default function ExampleAuctionPage() {
                       <span className="text-xs text-amber-500 ml-auto">Sample · {scenarioLabel}</span>
                     </div>
 
+                    {isProxyWin && (
+                      <div className="bg-green-50 border border-green-200 rounded-lg px-4 py-2.5 flex items-center gap-2">
+                        <span className="text-green-600 text-sm">🏆</span>
+                        <p className="text-xs text-green-800 font-medium">You won at ${escrowBid.toLocaleString()} — below your {escrowCost.allKnown ? 'max' : 'estimated max'} of ${proxyEffMax.toLocaleString()}. Saved ${(proxyEffMax - escrowBid).toLocaleString()} on the vehicle bid.</p>
+                      </div>
+                    )}
+
+                    {/* Due at purchase */}
                     <div className="bg-white rounded-lg p-4 space-y-2.5">
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-600">Winning bid</span>
-                        <span className="font-semibold text-curb-navy">${bidAmount.toLocaleString()}</span>
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-600">Required repairs</span>
-                        <span className="font-semibold text-curb-navy">${REPAIRS_TOTAL.toLocaleString()}</span>
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-600">Buyer premium (3%)</span>
-                        <span className="font-semibold text-curb-navy">${premium.toLocaleString()}</span>
-                      </div>
-                      {/* Tax line — dynamic */}
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-600">{est ? est.taxLine.label : 'Est. CA sales tax (~9.5%)'} {est && est.taxLine.amount !== null && <span className="text-green-600 text-xs ml-1">✓ confirmed</span>}</span>
-                        <span className={`font-semibold ${est && est.taxLine.amount === null ? 'text-amber-600' : 'text-curb-navy'}`}>
-                          {est ? est.taxLine.value : `$${Math.round(subtotal * SAMPLE_CA_TAX_RATE).toLocaleString()}`}
-                        </span>
-                      </div>
-                      {/* Registration line — dynamic */}
-                      {est && est.regLine.amount !== null && (
-                        <div className="flex justify-between text-sm">
-                          <span className="text-gray-600">{est.regLine.label} <span className="text-green-600 text-xs ml-1">✓ confirmed</span></span>
-                          <span className="font-semibold text-curb-navy">{est.regLine.value}</span>
+                      <p className="text-xs font-bold text-curb-navy mb-1">Due at purchase</p>
+                      {dueAtPurchase.map((item, i) => (
+                        <div key={i} className="flex justify-between text-sm">
+                          <span className="text-gray-600">
+                            {item.label}
+                            {item.note && <span className="text-gray-400 text-xs ml-1">· {item.note}</span>}
+                            {item.amount !== null && item.note?.includes('Sample') && <span className="text-green-600 text-xs ml-1">✓ confirmed</span>}
+                          </span>
+                          <span className="font-semibold text-curb-navy">{item.value}</span>
                         </div>
-                      )}
-                      {!est && (
-                        <div className="flex justify-between text-sm">
-                          <span className="text-gray-600">CA title & registration</span>
-                          <span className="font-semibold text-curb-navy">${SAMPLE_CA_REG.toLocaleString()}</span>
-                        </div>
-                      )}
+                      ))}
                       {/* Total line */}
                       <div className="border-t border-gray-200 pt-2.5 flex justify-between">
                         <div>
-                          <span className="font-bold text-curb-navy">{escrowPending ? 'Estimated amount due at purchase' : 'Total due at purchase'}</span>
-                          {escrowPending && (
+                          <span className="font-bold text-curb-navy">{pendingConfirmation.length > 0 ? 'Estimated amount due at purchase' : 'Total due at purchase'}</span>
+                          {pendingConfirmation.length > 0 && (
                             <p className="text-xs text-amber-600 mt-0.5">Some charges still pending dealer review</p>
                           )}
                         </div>
-                        <span className="font-bold text-curb-navy text-lg">{escrowPending ? '~' : ''}${escrowTotal.toLocaleString()}</span>
+                        <span className="font-bold text-curb-navy text-lg">{pendingConfirmation.length > 0 ? '~' : ''}${dueTotal.toLocaleString()}</span>
                       </div>
                     </div>
 
@@ -1176,28 +1148,47 @@ export default function ExampleAuctionPage() {
                       </div>
                     )}
 
-                    {/* What you may owe separately — dynamic */}
-                    {separateItems.length > 0 ? (
+                    {/* Paid separately */}
+                    {paidSeparately.length > 0 && (
                       <div className="bg-white rounded-lg p-4">
-                        <p className="text-xs font-semibold text-amber-800 mb-2">What you may owe separately</p>
+                        <p className="text-xs font-bold text-curb-navy mb-2">Paid separately</p>
                         <div className="space-y-2">
-                          {separateItems.map((item, i) => (
+                          {paidSeparately.map((item, i) => (
                             <div key={i}>
-                              <div className="flex justify-between text-xs">
-                                <span className="text-gray-700 font-medium">{item.label}</span>
-                                <span className="text-gray-700 font-medium">{item.value}</span>
+                              <div className="flex justify-between text-sm">
+                                <span className="text-gray-600">{item.label}</span>
+                                <span className="font-semibold text-curb-navy">{item.value}</span>
                               </div>
                               {item.note && <p className="text-xs text-gray-500 mt-0.5">{item.note}</p>}
                             </div>
                           ))}
                         </div>
                       </div>
-                    ) : (
+                    )}
+
+                    {/* Pending confirmation */}
+                    {pendingConfirmation.length > 0 && (
                       <div className="bg-white rounded-lg p-4">
-                        <p className="text-xs font-semibold text-amber-800 mb-2">What you may owe separately</p>
-                        <p className="text-xs text-gray-600 leading-relaxed">
-                          Based on this scenario, all estimated charges are included in the total above. The dealer confirms the final breakdown before you fund escrow.
-                        </p>
+                        <p className="text-xs font-bold text-amber-700 mb-2">Pending confirmation</p>
+                        <div className="space-y-2">
+                          {pendingConfirmation.map((item, i) => (
+                            <div key={i}>
+                              <div className="flex justify-between text-sm">
+                                <span className="text-gray-600">{item.label}</span>
+                                <span className="font-semibold text-amber-600">{item.value}</span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                        <p className="text-xs text-amber-600 mt-2">The dealer confirms these charges before you fund escrow.</p>
+                      </div>
+                    )}
+
+                    {/* All-in estimate when there are separately paid items */}
+                    {(paidSeparately.length > 0 || pendingConfirmation.length > 0) && (
+                      <div className="bg-amber-100/50 rounded-lg px-4 py-3 flex justify-between items-baseline">
+                        <span className="text-xs font-bold text-amber-800">{escrowCost.allKnown ? 'Est. all-in total' : 'Est. known costs'}</span>
+                        <span className="font-bold text-amber-800 text-lg">~${escrowCost.knownCost.toLocaleString()}</span>
                       </div>
                     )}
 
