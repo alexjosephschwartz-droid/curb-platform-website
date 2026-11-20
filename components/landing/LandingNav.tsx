@@ -103,12 +103,17 @@ export default function LandingNav() {
               <Link href="/roadmap" className="text-gray-700 hover:text-curb-orange transition">Roadmap</Link>
               <Link href="/about" className="text-gray-700 hover:text-curb-orange transition">About</Link>
             </div>
-            <button
-              onClick={() => setShowForm(true)}
-              className="bg-curb-orange text-white px-6 py-2 rounded-full hover:bg-orange-600 transition font-medium"
-            >
-              Get Early Access
-            </button>
+            <div className="flex items-center gap-4">
+              <Link href="/login" className="text-gray-700 hover:text-curb-orange transition font-medium">
+                Sign In
+              </Link>
+              <button
+                onClick={() => setShowForm(true)}
+                className="bg-curb-orange text-white px-6 py-2 rounded-full hover:bg-orange-600 transition font-medium"
+              >
+                Get Early Access
+              </button>
+            </div>
           </div>
         </div>
       </nav>
