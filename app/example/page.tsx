@@ -369,10 +369,11 @@ export default function ExampleAuctionPage() {
   const [expandWhatHappens, setExpandWhatHappens] = useState(false);
   const [bidFlowOpen, setBidFlowOpen] = useState(false);
   const [bidFlowStep, setBidFlowStep] = useState<'choose' | 'bid-once' | 'proxy-choose' | 'proxy-input' | 'confirm' | 'result'>('choose');
-  const [onceBidAmount, setOnceBidAmount] = useState(19000);
-  const [onceBidInput, setOnceBidInput] = useState('19,000');
+  const [onceBidAmount, setOnceBidAmount] = useState(18750);
+  const [onceBidInput, setOnceBidInput] = useState('18,750');
   const [demoResult, setDemoResult] = useState<'won' | 'outbid' | null>(null);
   const [demoWinBid, setDemoWinBid] = useState(0);
+  const [showResultBreakdown, setShowResultBreakdown] = useState(false);
 
   const handleOnceBidChange = (raw: string) => {
     const digits = raw.replace(/[^0-9]/g, '');
@@ -385,6 +386,10 @@ export default function ExampleAuctionPage() {
     setBidFlowOpen(true);
     setBidFlowStep('choose');
     setDemoResult(null);
+    setShowResultBreakdown(false);
+    const neb = bidAmount + getBidIncrement(bidAmount);
+    setOnceBidAmount(neb);
+    setOnceBidInput(neb.toLocaleString());
   };
 
   const nextEligibleBid = bidAmount + getBidIncrement(bidAmount);
@@ -806,20 +811,36 @@ export default function ExampleAuctionPage() {
                       {bidFlowStep === 'bid-once' && (() => {
                         const inc = getBidIncrement(bidAmount);
                         const minBid = bidAmount + inc;
-                        const validBid = onceBidAmount >= minBid;
+                        const meetsMinimum = onceBidAmount >= minBid;
+                        const alignedToIncrement = meetsMinimum && ((onceBidAmount - bidAmount) % inc === 0);
+                        const validBid = meetsMinimum && alignedToIncrement;
                         const cost = validBid ? computeAllInCost(onceBidAmount) : null;
+                        // Nearest valid bid at or below what they typed
+                        const nearestBelow = bidAmount + Math.floor((onceBidAmount - bidAmount) / inc) * inc;
+                        const nearestAbove = nearestBelow + inc;
                         return (
                           <div>
                             <h2 className="text-lg font-bold text-curb-navy mb-1">Place a Bid</h2>
                             <p className="text-xs text-gray-400 mb-4">Next eligible bid: ${minBid.toLocaleString()} (${inc.toLocaleString()} increment)</p>
                             <label className="text-xs text-gray-500 mb-1 block font-semibold">Your bid</label>
-                            <div className="relative mb-4">
+                            <div className="relative mb-2">
                               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-lg font-bold text-curb-orange">$</span>
                               <input type="text" inputMode="numeric" value={onceBidInput}
                                 onChange={(e) => handleOnceBidChange(e.target.value)}
                                 onBlur={() => setOnceBidInput(onceBidAmount > 0 ? onceBidAmount.toLocaleString() : '')}
-                                className="w-full pl-8 pr-4 py-3 text-lg font-bold text-curb-navy border-2 border-gray-200 rounded-xl focus:outline-none focus:border-curb-orange focus:ring-2 focus:ring-orange-500/20 transition" />
+                                className={`w-full pl-8 pr-4 py-3 text-lg font-bold text-curb-navy border-2 rounded-xl focus:outline-none focus:ring-2 transition ${meetsMinimum && !alignedToIncrement ? 'border-red-400 focus:border-red-400 focus:ring-red-500/20' : 'border-gray-200 focus:border-curb-orange focus:ring-orange-500/20'}`} />
                             </div>
+                            {meetsMinimum && !alignedToIncrement && (
+                              <p className="text-xs text-red-600 mb-3">
+                                Enter ${nearestBelow.toLocaleString()} or ${nearestAbove.toLocaleString()} — bids increase in ${inc.toLocaleString()} steps from ${bidAmount.toLocaleString()}.
+                              </p>
+                            )}
+                            {!meetsMinimum && onceBidAmount > 0 && (
+                              <p className="text-xs text-red-600 mb-3">
+                                Minimum bid is ${minBid.toLocaleString()}.
+                              </p>
+                            )}
+                            {!meetsMinimum && onceBidAmount === 0 && <div className="mb-2" />}
                             {validBid && cost && (
                               <div className="bg-gray-50 rounded-xl p-3.5 space-y-1.5 mb-4">
                                 <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">At ${onceBidAmount.toLocaleString()}</p>
@@ -985,9 +1006,76 @@ export default function ExampleAuctionPage() {
                             </div>
                           )}
 
-                          <p className="text-xs text-gray-400 text-center mb-4">
-                            See the full purchase breakdown in &quot;What happens if I win?&quot; below.
-                          </p>
+                          {demoResult === 'won' && !showResultBreakdown && (
+                            <button onClick={() => setShowResultBreakdown(true)}
+                              className="w-full py-2.5 border-2 border-gray-200 text-gray-600 rounded-xl font-semibold text-sm hover:border-curb-orange hover:text-curb-orange transition mb-4 flex items-center justify-center gap-1.5">
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+                              View purchase breakdown
+                            </button>
+                          )}
+
+                          {demoResult === 'won' && showResultBreakdown && (() => {
+                            const cost = computeAllInCost(demoWinBid);
+                            const duePurchase = cost.breakdown.filter(l => l.amount !== null && !l.note?.includes('Payable to NV') && !l.note?.includes('Paid to NV') && !l.label.toLowerCase().includes('shipping'));
+                            const paidSeparately = cost.breakdown.filter(l => (l.note?.includes('Payable to NV') || l.note?.includes('Paid to NV') || l.label.toLowerCase().includes('shipping')) && l.amount !== null);
+                            const pending = cost.breakdown.filter(l => l.amount === null);
+                            return (
+                              <div className="mb-4 space-y-3">
+                                <div className="flex items-center justify-between">
+                                  <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">Purchase Breakdown</p>
+                                  <button onClick={() => setShowResultBreakdown(false)} className="text-xs text-gray-400 hover:text-gray-600 transition">Hide</button>
+                                </div>
+
+                                {duePurchase.length > 0 && (
+                                  <div>
+                                    <p className="text-xs font-semibold text-green-700 mb-1.5">Due at purchase</p>
+                                    <div className="bg-green-50 rounded-lg p-3 space-y-1.5">
+                                      {duePurchase.map((l, i) => (
+                                        <div key={i} className="flex justify-between text-xs">
+                                          <span className="text-gray-600">{l.label}{l.note && <span className="text-gray-400"> · {l.note}</span>}</span>
+                                          <span className="font-semibold text-curb-navy">{l.value}</span>
+                                        </div>
+                                      ))}
+                                      <div className="border-t border-green-200 pt-1.5 flex justify-between text-xs">
+                                        <span className="font-bold text-curb-navy">Subtotal</span>
+                                        <span className="font-bold text-curb-navy">${duePurchase.reduce((s, l) => s + (l.amount ?? 0), 0).toLocaleString()}</span>
+                                      </div>
+                                    </div>
+                                  </div>
+                                )}
+
+                                {paidSeparately.length > 0 && (
+                                  <div>
+                                    <p className="text-xs font-semibold text-amber-700 mb-1.5">Paid separately</p>
+                                    <div className="bg-amber-50 rounded-lg p-3 space-y-1.5">
+                                      {paidSeparately.map((l, i) => (
+                                        <div key={i} className="flex justify-between text-xs">
+                                          <span className="text-gray-600">{l.label}{l.note && <span className="text-gray-400"> · {l.note}</span>}</span>
+                                          <span className="font-semibold text-amber-700">{l.value}</span>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+
+                                {pending.length > 0 && (
+                                  <div>
+                                    <p className="text-xs font-semibold text-gray-500 mb-1.5">Pending confirmation</p>
+                                    <div className="bg-gray-50 rounded-lg p-3 space-y-1.5">
+                                      {pending.map((l, i) => (
+                                        <div key={i} className="flex justify-between text-xs">
+                                          <span className="text-gray-600">{l.label}</span>
+                                          <span className="font-semibold text-amber-600">{l.value}</span>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+
+                                <p className="text-xs text-gray-400 text-center">Demo only — not a real purchase</p>
+                              </div>
+                            );
+                          })()}
 
                           <button onClick={() => { setShowWaitlist(true); }}
                             className="w-full py-3 bg-curb-orange text-white rounded-xl font-bold text-sm hover:bg-orange-600 transition shadow-lg shadow-orange-500/25 mb-3">
