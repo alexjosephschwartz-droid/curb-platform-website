@@ -96,6 +96,9 @@ export default function ExampleAuctionPage() {
     return zip.length === 5 && n >= 889 && n <= 898;
   };
 
+  // ZIP validation — rejects 00000, non-numeric, wrong length
+  const isValidZip = (zip: string) => /^[0-9]{5}$/.test(zip) && zip !== '00000';
+
   const handleBidChange = (raw: string) => {
     const digits = raw.replace(/[^0-9]/g, '');
     const num = parseInt(digits, 10) || 0;
@@ -113,6 +116,8 @@ export default function ExampleAuctionPage() {
     setEstRegZipDifferent(s.regZip !== s.destZip);
     setEstRegZip(s.regZip !== s.destZip ? s.regZip : '');
   };
+
+  type EstLine = { label: string; value: string; note?: string; amount: number | null };
 
   const getEstimate = () => {
     let buyerZip: string, destZip: string, regZip: string, isPickup: boolean;
@@ -135,46 +140,45 @@ export default function ExampleAuctionPage() {
     const regIsNV = isNevadaZip(regZip);
 
     // Tax
-    let taxLine: { label: string; value: string; note?: string };
+    let taxLine: EstLine;
     if (isPickup && destIsCA) {
       const tax = Math.round(subtotal * SAMPLE_CA_TAX_RATE);
-      taxLine = { label: 'Est. CA sales tax (~9.5%)', value: `$${tax.toLocaleString()}`, note: 'Sample estimate · Dealer review required' };
+      taxLine = { label: 'Est. CA sales tax (~9.5%)', value: `$${tax.toLocaleString()}`, note: 'Sample estimate · Dealer review required', amount: tax };
     } else if (!isPickup && !destIsCA) {
-      taxLine = { label: 'CA sales tax', value: 'Likely $0', note: 'For qualifying out-of-state deliveries, CA sales tax generally doesn\'t apply.' };
+      taxLine = { label: 'CA sales tax', value: 'Likely $0', note: 'For qualifying out-of-state deliveries, CA sales tax generally doesn\'t apply.', amount: 0 };
     } else if (!isPickup && destIsCA) {
       const tax = Math.round(subtotal * SAMPLE_CA_TAX_RATE);
-      taxLine = { label: 'Est. CA sales tax (~9.5%)', value: `$${tax.toLocaleString()}`, note: 'Sample estimate · Dealer review required' };
+      taxLine = { label: 'Est. CA sales tax (~9.5%)', value: `$${tax.toLocaleString()}`, note: 'Sample estimate · Dealer review required', amount: tax };
     } else {
-      // Pickup but not CA dest — e.g. NV buyer picking up in CA
-      // CA may still charge use tax on pickup — dealer review required
-      taxLine = { label: 'CA sales tax', value: 'Dealer review required', note: 'Tax may depend on how the vehicle leaves California' };
+      // Pickup but not CA dest — e.g. NV buyer picking up in CA with out-of-state registration
+      taxLine = { label: 'CA sales tax', value: 'Dealer review required', note: 'The car is picked up in California, but you\'re registering out of state. The dealer needs to verify whether CA sales tax applies to this transaction or whether your registration state\'s tax takes priority.', amount: null };
     }
 
     // Out-of-state tax note for registration state
-    let outOfStateTaxLine: { label: string; value: string; note?: string } | null = null;
+    let outOfStateTaxLine: EstLine | null = null;
     if (!regIsCA && regZip.length === 5) {
       if (regIsNV) {
         const nvTax = Math.round(subtotal * SAMPLE_NV_TAX_RATE);
-        outOfStateTaxLine = { label: 'Est. NV use tax (~8.25%)', value: `~$${nvTax.toLocaleString()}`, note: 'Sample estimate · You may owe this to Nevada when you register' };
+        outOfStateTaxLine = { label: 'Est. NV use tax (~8.25%)', value: `~$${nvTax.toLocaleString()}`, note: 'Sample estimate · You may owe this to Nevada when you register', amount: nvTax };
       } else {
-        outOfStateTaxLine = { label: 'Registration-state tax', value: 'Varies by state', note: 'You may owe sales/use tax in the state where you register' };
+        outOfStateTaxLine = { label: 'Registration-state tax', value: 'Varies by state', note: 'You may owe sales/use tax in the state where you register', amount: null };
       }
     }
 
     // Title & registration
-    let regLine: { label: string; value: string; note?: string };
+    let regLine: EstLine;
     if (regIsCA) {
-      regLine = { label: 'Est. CA title & registration', value: `~$${SAMPLE_CA_REG}`, note: 'Sample estimate · Dealer review required' };
+      regLine = { label: 'Est. CA title & registration', value: `~$${SAMPLE_CA_REG}`, note: 'Sample estimate · Dealer review required', amount: SAMPLE_CA_REG };
     } else if (regIsNV) {
-      regLine = { label: 'Est. NV title & registration', value: `~$${SAMPLE_NV_REG}`, note: 'Sample estimate · Paid to Nevada DMV' };
+      regLine = { label: 'Est. NV title & registration', value: `~$${SAMPLE_NV_REG}`, note: 'Sample estimate · Paid to Nevada DMV', amount: SAMPLE_NV_REG };
     } else if (regZip.length === 5) {
-      regLine = { label: 'Title & registration', value: 'Dealer review required', note: 'Fees vary by state' };
+      regLine = { label: 'Title & registration', value: 'Dealer review required', note: 'Fees vary by state', amount: null };
     } else {
-      regLine = { label: 'Title & registration', value: 'Enter ZIP above' };
+      regLine = { label: 'Title & registration', value: 'Enter ZIP above', amount: null };
     }
 
     // Shipping
-    let shipLine: { label: string; value: string; note?: string } | null = null;
+    let shipLine: EstLine | null = null;
     if (!isPickup && destZip.length === 5) {
       const destN = parseInt(destZip.slice(0, 3), 10);
       let shipEst = '';
@@ -185,19 +189,25 @@ export default function ExampleAuctionPage() {
       else if (destN >= 750 && destN <= 799) { shipEst = '$800–$1,200'; }
       else if (destN >= 100 && destN <= 149) { shipEst = '$1,200–$1,800'; }
       else { shipEst = '$800–$1,500'; }
-      shipLine = { label: 'Est. shipping', value: shipEst, note: 'From Los Angeles, CA · Quoted separately' };
+      shipLine = { label: 'Est. shipping', value: shipEst, note: 'From Los Angeles, CA · Quoted separately', amount: null };
     } else if (!isPickup) {
-      shipLine = { label: 'Shipping', value: 'Enter destination ZIP' };
+      shipLine = { label: 'Shipping', value: 'Enter destination ZIP', amount: null };
     }
 
-    return { taxLine, outOfStateTaxLine, regLine, shipLine, buyerZip, destZip, regZip, isPickup, destIsCA, regIsCA };
+    // Compute estimated total
+    const allLines = [taxLine, outOfStateTaxLine, regLine, shipLine].filter((l): l is EstLine => l !== null);
+    const knownTotal = subtotal + allLines.reduce((sum, l) => sum + (l.amount ?? 0), 0);
+    const pendingLabels = allLines.filter(l => l.amount === null && l.value !== 'Enter ZIP above' && l.value !== 'Enter destination ZIP').map(l => l.label);
+    const allKnown = pendingLabels.length === 0;
+
+    return { taxLine, outOfStateTaxLine, regLine, shipLine, buyerZip, destZip, regZip, isPickup, destIsCA, regIsCA, knownTotal, pendingLabels, allKnown };
   };
 
   const canShowEstimate = () => {
     if (!customMode) return true;
-    if (estZip.length < 5) return false;
-    if (estDelivery === 'ship' && estDestZip.length < 5) return false;
-    if (estRegZipDifferent && estRegZip.length < 5) return false;
+    if (!isValidZip(estZip)) return false;
+    if (estDelivery === 'ship' && !isValidZip(estDestZip)) return false;
+    if (estRegZipDifferent && !isValidZip(estRegZip)) return false;
     return true;
   };
 
@@ -316,7 +326,7 @@ export default function ExampleAuctionPage() {
                 <p className="text-sm text-gray-500 mb-4">Completed by the listing dealer before auction start</p>
                 <div className="space-y-4">
                   {[
-                    { area: 'Exterior', rating: 'Good', notes: 'Minor curb rash on two front wheels. Small door ding on passenger side, barely visible. Paint in good condition overall — no major scratches or dents.' },
+                    { area: 'Exterior', rating: 'Good', notes: 'Minor curb rash on two front wheels (included in required repairs — both wheels will be refinished before delivery). Small door ding on passenger side, barely visible. Paint in good condition overall — no major scratches or dents.' },
                     { area: 'Interior', rating: 'Very Good', notes: 'Black leather seats in great shape, no tears or heavy wear. All electronics functional — iDrive, Bluetooth, CarPlay all work. Headliner clean.' },
                     { area: 'Mechanical', rating: 'Good', notes: 'Engine runs smoothly, no warning lights. Transmission shifts cleanly through all gears. AC blows cold. Front brake pads are worn and need replacement (~30% remaining).' },
                     { area: 'Tires', rating: 'Fair', notes: 'Rear tires have adequate tread (5/32"). Front tires at 3/32" — approaching replacement. Alignment appears straight.' },
@@ -350,7 +360,7 @@ export default function ExampleAuctionPage() {
                   {[
                     { item: 'Front brake pads + rotors', detail: 'OEM-equivalent parts, full replacement', cost: '$480' },
                     { item: 'Front tire replacement (2)', detail: 'Matching brand/size to rears', cost: '$340' },
-                    { item: 'Wheel curb rash repair (2)', detail: 'Refinish both front wheels', cost: '$200' },
+                    { item: 'Wheel curb rash repair (2)', detail: 'Refinish both front wheels — cosmetic damage noted in condition report; dealer requires repair for retail-ready delivery', cost: '$200' },
                     { item: 'Oil + filter service', detail: 'Full synthetic, BMW-spec', cost: '$120' },
                     { item: 'Multi-point safety inspection', detail: 'Lights, fluids, belts, battery', cost: '$75' },
                   ].map((repair) => (
@@ -436,8 +446,11 @@ export default function ExampleAuctionPage() {
                         placeholder="e.g. 90210"
                         value={estZip}
                         onChange={(e) => setEstZip(e.target.value.replace(/\D/g, '').slice(0, 5))}
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-curb-orange text-sm"
+                        className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-curb-orange text-sm ${estZip.length === 5 && !isValidZip(estZip) ? 'border-red-400' : 'border-gray-300'}`}
                       />
+                      {estZip.length === 5 && !isValidZip(estZip) && (
+                        <p className="text-xs text-red-500 mt-1">Please enter a valid US ZIP code</p>
+                      )}
                     </div>
 
                     <div>
@@ -451,7 +464,7 @@ export default function ExampleAuctionPage() {
                           Dealer pickup
                         </button>
                         <button
-                          onClick={() => setEstDelivery('ship')}
+                          onClick={() => { setEstDelivery('ship'); if (!estDestZip && estZip.length === 5) setEstDestZip(estZip); }}
                           className={`py-3 px-4 rounded-xl text-sm font-semibold border-2 transition ${estDelivery === 'ship' ? 'border-curb-orange bg-orange-50 text-curb-orange' : 'border-gray-200 text-gray-600 hover:border-gray-300'}`}
                         >
                           <span className="block text-lg mb-0.5">🚚</span>
@@ -470,8 +483,11 @@ export default function ExampleAuctionPage() {
                           placeholder="Where should we ship it?"
                           value={estDestZip}
                           onChange={(e) => setEstDestZip(e.target.value.replace(/\D/g, '').slice(0, 5))}
-                          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-curb-orange text-sm"
+                          className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-curb-orange text-sm ${estDestZip.length === 5 && !isValidZip(estDestZip) ? 'border-red-400' : 'border-gray-300'}`}
                         />
+                        {estDestZip.length === 5 && !isValidZip(estDestZip) && (
+                          <p className="text-xs text-red-500 mt-1">Please enter a valid US ZIP code</p>
+                        )}
                       </div>
                     )}
 
@@ -493,7 +509,7 @@ export default function ExampleAuctionPage() {
                           placeholder="Registration ZIP"
                           value={estRegZip}
                           onChange={(e) => setEstRegZip(e.target.value.replace(/\D/g, '').slice(0, 5))}
-                          className="w-full mt-2 px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-curb-orange text-sm"
+                          className={`w-full mt-2 px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-curb-orange text-sm ${estRegZip.length === 5 && !isValidZip(estRegZip) ? 'border-red-400' : 'border-gray-300'}`}
                         />
                       )}
                     </div>
@@ -502,7 +518,7 @@ export default function ExampleAuctionPage() {
 
                 {/* Estimate results — always shown for demo scenarios, gated for custom */}
                 {canShowEstimate() && (() => {
-                  const { taxLine, outOfStateTaxLine, regLine, shipLine, isPickup, destIsCA } = getEstimate();
+                  const { taxLine, outOfStateTaxLine, regLine, shipLine, isPickup, destIsCA, knownTotal, pendingLabels, allKnown } = getEstimate();
                   return (
                     <div className={customMode ? 'border-t border-gray-200 pt-5' : ''}>
                       <div className="flex items-center gap-1.5 mb-3">
@@ -572,7 +588,22 @@ export default function ExampleAuctionPage() {
                           </div>
                         )}
 
-                        {/* Divider + note */}
+                        {/* Estimated total */}
+                        <div className="border-t-2 border-gray-300 pt-3 mt-1">
+                          <div className="flex justify-between items-baseline">
+                            <div>
+                              <span className="font-bold text-curb-navy">{allKnown ? 'Estimated total' : 'Estimated amount so far'}</span>
+                              {!allKnown && (
+                                <p className="text-xs text-amber-600 mt-0.5">
+                                  Still pending: {pendingLabels.join(', ')}
+                                </p>
+                              )}
+                            </div>
+                            <span className="text-lg font-bold text-curb-navy">~${knownTotal.toLocaleString()}</span>
+                          </div>
+                        </div>
+
+                        {/* Note */}
                         <div className="border-t border-gray-200 pt-3">
                           <p className="text-xs text-gray-500 leading-relaxed">
                             {!isPickup && !destIsCA && (

@@ -96,14 +96,15 @@ export default function Home() {
                   </div>
                   <div className="flex items-end justify-between">
                     <div>
-                      <p className="text-xs text-gray-500 mb-1">Current Bid</p>
-                      <p className="text-3xl font-bold text-curb-navy">$18,500</p>
+                      <p className="text-xs text-gray-500 mb-1">Subtotal</p>
+                      <p className="text-3xl font-bold text-curb-navy">$20,270</p>
+                      <p className="text-xs text-gray-400">Bid $18,500 + repairs + fee</p>
                     </div>
                     <div className="text-right">
                       <p className="text-xs text-gray-400 mb-1">Retail value</p>
                       <p className="text-lg text-gray-400 line-through">$24,000</p>
                       <div className="mt-1 inline-block px-3 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full">
-                        Save $5,500
+                        Save $3,730+
                       </div>
                     </div>
                   </div>
@@ -344,10 +345,10 @@ export default function Home() {
                 <div className="bg-orange-50 rounded-2xl p-8 border-2 border-curb-orange relative ring-2 ring-curb-orange/20 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
                   <div className="absolute -top-3 left-6 px-3 py-0.5 bg-curb-orange text-white text-xs font-bold rounded-full uppercase tracking-wide">On Curb</div>
                   <div className="mt-4 mb-6">
-                    <p className="text-sm text-gray-500 mb-1">You pay</p>
-                    <p className="text-3xl font-extrabold text-curb-orange">$18,500</p>
+                    <p className="text-sm text-gray-500 mb-1">Subtotal (bid + repairs + fee)</p>
+                    <p className="text-3xl font-extrabold text-curb-orange">$20,270</p>
                   </div>
-                  <p className="text-sm text-gray-500 leading-relaxed">Direct from dealer. Inspected, repaired, escrow-protected. <strong className="text-curb-navy">Save $5,500.</strong></p>
+                  <p className="text-sm text-gray-500 leading-relaxed">Direct from dealer. Inspected, repaired, escrow-protected. <strong className="text-curb-navy">Save $3,730+</strong> before taxes &amp; registration.</p>
                 </div>
               </div>
             </div>
