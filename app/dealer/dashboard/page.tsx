@@ -14,6 +14,91 @@ type VehicleWithAuction = Vehicle & {
   auctions: Auction[];
 };
 
+// Sample data for demo purposes
+const SAMPLE_VEHICLES: VehicleWithAuction[] = [
+  {
+    id: 'demo-1', dealer_id: 'demo', vin: '1HGCV1F34LA012345', year: 2020, make: 'Honda', model: 'Accord', trim: 'Sport',
+    body_style: 'Sedan', exterior_color: 'Crystal Black Pearl', interior_color: 'Black', engine: '1.5L Turbo I4',
+    transmission: 'CVT', drivetrain: 'FWD', fuel_type: 'Gasoline', mileage: 42150,
+    retail_value: 2650000, reserve_price: 1850000, condition_notes: 'Clean trade-in, minor wear on driver seat',
+    known_issues: null, repair_estimate: 45000, inspection_notes: null, photos: [], photo_count: 4,
+    status: 'listed', rejection_reason: null, created_at: new Date().toISOString(), updated_at: new Date().toISOString(),
+    auctions: [{
+      id: 'auction-1', vehicle_id: 'demo-1', dealer_id: 'demo', starts_at: new Date(Date.now() - 86400000).toISOString(),
+      ends_at: new Date(Date.now() + 172800000).toISOString(), starting_price: 1600000, reserve_price: 1850000,
+      current_bid: 1725000, bid_count: 8, winning_bid_id: null, winner_id: null, status: 'active',
+      buyer_premium_rate: 0.03, listing_fee: 10000, created_at: new Date().toISOString(), updated_at: new Date().toISOString(),
+    }],
+  },
+  {
+    id: 'demo-2', dealer_id: 'demo', vin: '5YJSA1E26MF123456', year: 2021, make: 'Tesla', model: 'Model 3', trim: 'Long Range',
+    body_style: 'Sedan', exterior_color: 'Pearl White', interior_color: 'Black', engine: 'Dual Motor Electric',
+    transmission: 'Single Speed', drivetrain: 'AWD', fuel_type: 'Electric', mileage: 28300,
+    retail_value: 3200000, reserve_price: 2400000, condition_notes: 'Excellent condition, full self-driving capable',
+    known_issues: null, repair_estimate: 0, inspection_notes: null, photos: [], photo_count: 6,
+    status: 'listed', rejection_reason: null, created_at: new Date().toISOString(), updated_at: new Date().toISOString(),
+    auctions: [{
+      id: 'auction-2', vehicle_id: 'demo-2', dealer_id: 'demo', starts_at: new Date(Date.now() - 43200000).toISOString(),
+      ends_at: new Date(Date.now() + 216000000).toISOString(), starting_price: 2100000, reserve_price: 2400000,
+      current_bid: 2350000, bid_count: 14, winning_bid_id: null, winner_id: null, status: 'active',
+      buyer_premium_rate: 0.03, listing_fee: 10000, created_at: new Date().toISOString(), updated_at: new Date().toISOString(),
+    }],
+  },
+  {
+    id: 'demo-3', dealer_id: 'demo', vin: '1C4RJFBG5LC234567', year: 2020, make: 'Jeep', model: 'Grand Cherokee', trim: 'Limited',
+    body_style: 'SUV', exterior_color: 'Slate Blue', interior_color: 'Brown', engine: '3.6L V6',
+    transmission: '8-Speed Auto', drivetrain: '4WD', fuel_type: 'Gasoline', mileage: 51200,
+    retail_value: 2900000, reserve_price: 2100000, condition_notes: 'Well-maintained, one owner, clean Carfax',
+    known_issues: 'Minor scratch on rear bumper', repair_estimate: 35000, inspection_notes: null, photos: [], photo_count: 5,
+    status: 'listed', rejection_reason: null, created_at: new Date().toISOString(), updated_at: new Date().toISOString(),
+    auctions: [{
+      id: 'auction-3', vehicle_id: 'demo-3', dealer_id: 'demo', starts_at: new Date(Date.now() - 129600000).toISOString(),
+      ends_at: new Date(Date.now() + 86400000).toISOString(), starting_price: 1800000, reserve_price: 2100000,
+      current_bid: 1950000, bid_count: 6, winning_bid_id: null, winner_id: null, status: 'active',
+      buyer_premium_rate: 0.03, listing_fee: 10000, created_at: new Date().toISOString(), updated_at: new Date().toISOString(),
+    }],
+  },
+  {
+    id: 'demo-4', dealer_id: 'demo', vin: '3MW5R1J00M8345678', year: 2021, make: 'BMW', model: '330i', trim: 'xDrive',
+    body_style: 'Sedan', exterior_color: 'Alpine White', interior_color: 'Black', engine: '2.0L Turbo I4',
+    transmission: '8-Speed Auto', drivetrain: 'AWD', fuel_type: 'Gasoline', mileage: 35800,
+    retail_value: 3400000, reserve_price: 2500000, condition_notes: 'Lease return, all services at dealer',
+    known_issues: null, repair_estimate: 25000, inspection_notes: null, photos: [], photo_count: 5,
+    status: 'pending_approval', rejection_reason: null, created_at: new Date().toISOString(), updated_at: new Date().toISOString(),
+    auctions: [],
+  },
+  {
+    id: 'demo-5', dealer_id: 'demo', vin: '2T1BURHE0JC456789', year: 2019, make: 'Toyota', model: 'Corolla', trim: 'LE',
+    body_style: 'Sedan', exterior_color: 'Silver Metallic', interior_color: 'Gray', engine: '1.8L I4',
+    transmission: 'CVT', drivetrain: 'FWD', fuel_type: 'Gasoline', mileage: 67400,
+    retail_value: 1800000, reserve_price: 1200000, condition_notes: 'High mileage but mechanically sound',
+    known_issues: null, repair_estimate: 15000, inspection_notes: 'Passed inspection, brake pads replaced',
+    photos: [], photo_count: 4,
+    status: 'sold', rejection_reason: null, created_at: new Date(Date.now() - 604800000).toISOString(), updated_at: new Date().toISOString(),
+    auctions: [{
+      id: 'auction-5', vehicle_id: 'demo-5', dealer_id: 'demo', starts_at: new Date(Date.now() - 604800000).toISOString(),
+      ends_at: new Date(Date.now() - 345600000).toISOString(), starting_price: 1000000, reserve_price: 1200000,
+      current_bid: 1310000, bid_count: 11, winning_bid_id: 'bid-w', winner_id: 'buyer-1', status: 'sold',
+      buyer_premium_rate: 0.03, listing_fee: 10000, created_at: new Date().toISOString(), updated_at: new Date().toISOString(),
+    }],
+  },
+  {
+    id: 'demo-6', dealer_id: 'demo', vin: '1FTFW1E50MF567890', year: 2021, make: 'Ford', model: 'F-150', trim: 'XLT',
+    body_style: 'Truck', exterior_color: 'Rapid Red', interior_color: 'Gray', engine: '2.7L EcoBoost V6',
+    transmission: '10-Speed Auto', drivetrain: '4WD', fuel_type: 'Gasoline', mileage: 38500,
+    retail_value: 3800000, reserve_price: 2900000, condition_notes: 'Fleet vehicle, well-maintained, bed liner',
+    known_issues: null, repair_estimate: 20000, inspection_notes: 'All clear, new tires',
+    photos: [], photo_count: 6,
+    status: 'sold', rejection_reason: null, created_at: new Date(Date.now() - 1209600000).toISOString(), updated_at: new Date().toISOString(),
+    auctions: [{
+      id: 'auction-6', vehicle_id: 'demo-6', dealer_id: 'demo', starts_at: new Date(Date.now() - 1209600000).toISOString(),
+      ends_at: new Date(Date.now() - 950400000).toISOString(), starting_price: 2500000, reserve_price: 2900000,
+      current_bid: 3050000, bid_count: 18, winning_bid_id: 'bid-w2', winner_id: 'buyer-2', status: 'sold',
+      buyer_premium_rate: 0.03, listing_fee: 10000, created_at: new Date().toISOString(), updated_at: new Date().toISOString(),
+    }],
+  },
+] as unknown as VehicleWithAuction[];
+
 export default function DealerDashboard() {
   const router = useRouter();
   const { user, profile, loading: authLoading, isDealer } = useUser();
@@ -21,6 +106,7 @@ export default function DealerDashboard() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'active' | 'pending' | 'sold' | 'all'>('active');
   const [showListedBanner, setShowListedBanner] = useState(false);
+  const [isDemo, setIsDemo] = useState(false);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -47,8 +133,13 @@ export default function DealerDashboard() {
         .eq('dealer_id', user!.id)
         .order('created_at', { ascending: false });
 
-      if (!error && data) {
+      if (!error && data && data.length > 0) {
         setVehicles(data as VehicleWithAuction[]);
+        setIsDemo(false);
+      } else {
+        // Show sample data when no real vehicles exist
+        setVehicles(SAMPLE_VEHICLES);
+        setIsDemo(true);
       }
       setLoading(false);
     }
@@ -121,6 +212,16 @@ export default function DealerDashboard() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Demo Banner */}
+        {isDemo && (
+          <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg flex items-center gap-3">
+            <span className="text-xl">📋</span>
+            <p className="text-sm text-blue-800">
+              <span className="font-semibold">Sample data shown.</span> List your first vehicle to see your real inventory here.
+            </p>
+          </div>
+        )}
+
         {/* Success Banner */}
         {showListedBanner && (
           <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg flex items-center justify-between">
@@ -212,14 +313,9 @@ export default function DealerDashboard() {
                     <div key={vehicle.id} className="border border-gray-200 rounded-lg p-4 hover:border-curb-orange/30 transition">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
-                          {vehicle.photos && vehicle.photos.length > 0 ? (
-                            <img src={vehicle.photos[0]} alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
-                              className="w-20 h-14 object-cover rounded-lg" />
-                          ) : (
-                            <div className="w-20 h-14 bg-gray-100 rounded-lg flex items-center justify-center text-gray-400 text-xs">
-                              No photo
-                            </div>
-                          )}
+                          <div className="w-20 h-14 bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg flex items-center justify-center text-gray-400 text-lg">
+                            🚗
+                          </div>
                           <div>
                             <h3 className="font-semibold text-curb-navy">
                               {vehicle.year} {vehicle.make} {vehicle.model} {vehicle.trim}
@@ -236,6 +332,16 @@ export default function DealerDashboard() {
                               <p className="text-xs text-gray-500">Current Bid</p>
                               <p className="text-lg font-bold text-curb-orange">
                                 {auction.current_bid ? fmtPrice(auction.current_bid) : 'No bids'}
+                              </p>
+                              <p className="text-xs text-gray-500">{auction.bid_count} bid(s)</p>
+                            </div>
+                          )}
+
+                          {auction && auction.status === 'sold' && (
+                            <div className="text-right">
+                              <p className="text-xs text-gray-500">Sold For</p>
+                              <p className="text-lg font-bold text-green-600">
+                                {auction.current_bid ? fmtPrice(auction.current_bid) : '—'}
                               </p>
                               <p className="text-xs text-gray-500">{auction.bid_count} bid(s)</p>
                             </div>
