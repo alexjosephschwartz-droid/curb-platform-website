@@ -1,32 +1,41 @@
--- Fix: handle_new_user() trigger was failing when raw_user_meta_data->>'role'
--- contained an invalid or empty value. The ::user_role cast throws an error
--- BEFORE coalesce can check for NULL, crashing the entire INSERT on auth.users.
+-- Fix: handle_new_user() trigger function
 --
--- This version safely checks whether the metadata role is a valid enum value
--- before attempting the cast.
+-- Two issues fixed:
+-- 1. The original coalesce-based role cast threw an error on invalid/empty
+--    values BEFORE coalesce could check for NULL.
+-- 2. Missing SET search_path = public caused the function to fail when
+--    invoked by GoTrue (Supabase Auth), which uses a different search_path.
+--    This blocked ALL new user signups.
 
-create or replace function handle_new_user()
-returns trigger as $$
-declare
+CREATE OR REPLACE FUNCTION handle_new_user()
+RETURNS trigger AS $$
+DECLARE
   _role user_role;
-begin
+BEGIN
   -- Safely extract role: only cast if the value is a valid enum member
-  if new.raw_user_meta_data ->> 'role' in ('buyer', 'dealer', 'admin') then
-    _role := (new.raw_user_meta_data ->> 'role')::user_role;
-  else
+  IF NEW.raw_user_meta_data ->> 'role' IN ('buyer', 'dealer', 'admin') THEN
+    _role := (NEW.raw_user_meta_data ->> 'role')::user_role;
+  ELSE
     _role := 'buyer';
-  end if;
+  END IF;
 
-  insert into profiles (id, email, role)
-  values (new.id, new.email, _role);
+  INSERT INTO public.profiles (id, email, role)
+  VALUES (NEW.id, NEW.email, _role);
 
-  return new;
-end;
-$$ language plpgsql security definer;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
 
 -- Re-create the trigger (drop first in case it was removed during debugging)
-drop trigger if exists on_auth_user_created on auth.users;
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 
-create trigger on_auth_user_created
-  after insert on auth.users
-  for each row execute function handle_new_user();
+CREATE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE FUNCTION handle_new_user();
+
+-- Allow the trigger function (running as postgres) to insert profiles.
+-- Belt-and-suspenders: SECURITY DEFINER + postgres bypasses RLS anyway,
+-- but this makes the intent explicit.
+CREATE POLICY IF NOT EXISTS "profiles_insert_trigger" ON profiles FOR INSERT
+  TO postgres, service_role
+  WITH CHECK (true);
