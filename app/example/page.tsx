@@ -24,6 +24,76 @@ export default function ExampleAuctionPage() {
     email: '', firstName: '', lastName: '', location: '', vehicleType: '', priceRange: '',
   });
 
+  // Estimate your total state
+  const [estZip, setEstZip] = useState('');
+  const [estDelivery, setEstDelivery] = useState<'pickup' | 'ship'>('pickup');
+  const [estDestZip, setEstDestZip] = useState('');
+  const [estRegZipDifferent, setEstRegZipDifferent] = useState(false);
+  const [estRegZip, setEstRegZip] = useState('');
+  const [showEstimate, setShowEstimate] = useState(false);
+
+  // Simple CA ZIP detection (900xx–961xx)
+  const isCaliforniaZip = (zip: string) => {
+    const n = parseInt(zip.slice(0, 3), 10);
+    return zip.length === 5 && n >= 900 && n <= 961;
+  };
+
+  const VEHICLE_SUBTOTAL = 20270; // $18,500 + $1,215 + $555
+  const SAMPLE_CA_TAX_RATE = 0.0950; // ~9.5% LA County sample
+  const SAMPLE_CA_REG = 435; // sample CA title, reg, plates
+
+  const getEstimate = () => {
+    const buyerZip = estZip.trim();
+    const destZip = estDelivery === 'ship' ? estDestZip.trim() : buyerZip;
+    const regZip = estRegZipDifferent ? estRegZip.trim() : destZip;
+    const isPickup = estDelivery === 'pickup';
+    const destIsCA = isCaliforniaZip(destZip);
+    const regIsCA = isCaliforniaZip(regZip);
+
+    // Tax
+    let taxLine: { label: string; value: string; note?: string };
+    if (isPickup && destIsCA) {
+      const tax = Math.round(VEHICLE_SUBTOTAL * SAMPLE_CA_TAX_RATE);
+      taxLine = { label: 'Est. CA sales tax (~9.5%)', value: `$${tax.toLocaleString()}`, note: 'Sample estimate · Dealer to confirm exact rate' };
+    } else if (!isPickup && !destIsCA) {
+      taxLine = { label: 'Sales tax', value: 'Likely $0 CA tax', note: 'For qualifying out-of-state deliveries, CA sales tax generally doesn\'t apply. You may owe tax in the state where you register.' };
+    } else if (!isPickup && destIsCA) {
+      const tax = Math.round(VEHICLE_SUBTOTAL * SAMPLE_CA_TAX_RATE);
+      taxLine = { label: 'Est. CA sales tax (~9.5%)', value: `$${tax.toLocaleString()}`, note: 'Sample estimate · Dealer to confirm exact rate' };
+    } else {
+      taxLine = { label: 'Sales tax', value: 'Dealer to confirm', note: 'Varies by location' };
+    }
+
+    // Title & registration
+    let regLine: { label: string; value: string; note?: string };
+    if (regIsCA) {
+      regLine = { label: 'Est. CA title & registration', value: `~$${SAMPLE_CA_REG}`, note: 'Sample estimate · Dealer to confirm' };
+    } else if (regZip.length === 5) {
+      regLine = { label: 'Title & registration', value: 'Dealer to confirm', note: 'Fees vary by state' };
+    } else {
+      regLine = { label: 'Title & registration', value: 'Enter ZIP above' };
+    }
+
+    // Shipping
+    let shipLine: { label: string; value: string; note?: string } | null = null;
+    if (!isPickup && destZip.length === 5) {
+      // Sample shipping estimates by rough distance from LA
+      const destN = parseInt(destZip.slice(0, 3), 10);
+      let shipEst = '';
+      if (destIsCA) { shipEst = '$350–$600'; }
+      else if (destN >= 850 && destN <= 870) { shipEst = '$500–$800'; } // AZ/NV
+      else if (destN >= 970 && destN <= 979) { shipEst = '$600–$900'; } // OR/WA
+      else if (destN >= 750 && destN <= 799) { shipEst = '$800–$1,200'; } // TX
+      else if (destN >= 100 && destN <= 149) { shipEst = '$1,200–$1,800'; } // NY
+      else { shipEst = '$800–$1,500'; }
+      shipLine = { label: 'Est. shipping', value: shipEst, note: 'From Los Angeles, CA · Quoted separately' };
+    } else if (!isPickup) {
+      shipLine = { label: 'Shipping', value: 'Enter destination ZIP' };
+    }
+
+    return { taxLine, regLine, shipLine };
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
@@ -165,13 +235,9 @@ export default function ExampleAuctionPage() {
                   <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
                     <svg className="w-4 h-4 text-green-600" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                   </div>
-                  <h2 className="text-xl font-bold text-curb-navy">Repairs Before Delivery</h2>
+                  <h2 className="text-xl font-bold text-curb-navy">Required Repairs</h2>
                 </div>
-                <div className="mb-4 inline-flex items-center gap-1.5 px-3 py-1 bg-green-50 border border-green-200 rounded-full">
-                  <svg className="w-3.5 h-3.5 text-green-600" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" viewBox="0 0 24 24" stroke="currentColor"><path d="M5 13l4 4L19 7" /></svg>
-                  <span className="text-xs font-bold text-green-700">Included in your price — no extra cost</span>
-                </div>
-                <p className="text-sm text-gray-500 mb-4">The dealer completes these repairs after the auction ends and before you take delivery. You review and approve the work.</p>
+                <p className="text-sm text-gray-500 mb-4">The selling dealer completes these repairs after the auction ends and before you take delivery. You review and approve the work before escrow releases payment.</p>
 
                 <div className="space-y-3">
                   {[
@@ -191,18 +257,169 @@ export default function ExampleAuctionPage() {
                           <p className="text-xs text-gray-500 mt-0.5">{repair.detail}</p>
                         </div>
                       </div>
-                      <span className="text-sm font-medium text-gray-400 line-through ml-4 flex-shrink-0">{repair.cost}</span>
+                      <span className="text-sm font-semibold text-curb-navy ml-4 flex-shrink-0">{repair.cost}</span>
                     </div>
                   ))}
                 </div>
 
-                <div className="mt-4 pt-4 border-t-2 border-green-200 flex items-center justify-between">
-                  <span className="font-bold text-curb-navy">Total repair value</span>
-                  <div className="text-right">
-                    <span className="text-lg font-bold text-green-600">$0 to you</span>
-                    <span className="text-sm text-gray-400 line-through ml-2">$1,215</span>
-                  </div>
+                <div className="mt-4 pt-4 border-t-2 border-gray-200 flex items-center justify-between">
+                  <span className="font-bold text-curb-navy">Total required repairs</span>
+                  <span className="text-lg font-bold text-curb-navy">$1,215</span>
                 </div>
+                <p className="text-xs text-gray-400 mt-2">Included in your subtotal. The dealer completes all work before delivery.</p>
+              </div>
+
+              {/* Estimate your total */}
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                <div className="flex items-center gap-2 mb-1">
+                  <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+                    <svg className="w-4 h-4 text-purple-600" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor"><path d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
+                  </div>
+                  <h2 className="text-xl font-bold text-curb-navy">Estimate Your Total</h2>
+                </div>
+                <p className="text-sm text-gray-500 mb-5">Enter your ZIP code and choose pickup or shipping to see estimated costs. The selling dealer will confirm and collect applicable taxes and DMV fees at the time of purchase. Shipping is quoted separately.</p>
+
+                {/* ZIP + delivery selector */}
+                <div className="space-y-4 mb-5">
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">Your ZIP Code</label>
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      maxLength={5}
+                      placeholder="e.g. 90210"
+                      value={estZip}
+                      onChange={(e) => { setEstZip(e.target.value.replace(/\D/g, '').slice(0, 5)); setShowEstimate(false); }}
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-curb-orange text-sm"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">How do you want your car?</label>
+                    <div className="grid grid-cols-2 gap-3">
+                      <button
+                        onClick={() => { setEstDelivery('pickup'); setShowEstimate(false); }}
+                        className={`py-3 px-4 rounded-xl text-sm font-semibold border-2 transition ${estDelivery === 'pickup' ? 'border-curb-orange bg-orange-50 text-curb-orange' : 'border-gray-200 text-gray-600 hover:border-gray-300'}`}
+                      >
+                        <span className="block text-lg mb-0.5">🏢</span>
+                        Dealer pickup
+                      </button>
+                      <button
+                        onClick={() => { setEstDelivery('ship'); setShowEstimate(false); }}
+                        className={`py-3 px-4 rounded-xl text-sm font-semibold border-2 transition ${estDelivery === 'ship' ? 'border-curb-orange bg-orange-50 text-curb-orange' : 'border-gray-200 text-gray-600 hover:border-gray-300'}`}
+                      >
+                        <span className="block text-lg mb-0.5">🚚</span>
+                        Ship to me
+                      </button>
+                    </div>
+                  </div>
+
+                  {estDelivery === 'ship' && (
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">Destination ZIP</label>
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        maxLength={5}
+                        placeholder="Where should we ship it?"
+                        value={estDestZip}
+                        onChange={(e) => { setEstDestZip(e.target.value.replace(/\D/g, '').slice(0, 5)); setShowEstimate(false); }}
+                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-curb-orange text-sm"
+                      />
+                    </div>
+                  )}
+
+                  <div>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={estRegZipDifferent}
+                        onChange={(e) => { setEstRegZipDifferent(e.target.checked); setShowEstimate(false); }}
+                        className="w-4 h-4 rounded border-gray-300 text-curb-orange focus:ring-curb-orange"
+                      />
+                      <span className="text-sm text-gray-600">I&apos;ll register this vehicle in a different ZIP</span>
+                    </label>
+                    {estRegZipDifferent && (
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        maxLength={5}
+                        placeholder="Registration ZIP"
+                        value={estRegZip}
+                        onChange={(e) => { setEstRegZip(e.target.value.replace(/\D/g, '').slice(0, 5)); setShowEstimate(false); }}
+                        className="w-full mt-2 px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-curb-orange text-sm"
+                      />
+                    )}
+                  </div>
+
+                  <button
+                    onClick={() => setShowEstimate(true)}
+                    disabled={estZip.length < 5 || (estDelivery === 'ship' && estDestZip.length < 5) || (estRegZipDifferent && estRegZip.length < 5)}
+                    className="w-full py-3 bg-curb-navy text-white rounded-xl font-semibold text-sm hover:bg-slate-800 transition disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    Show Estimate
+                  </button>
+                </div>
+
+                {/* Estimate results */}
+                {showEstimate && (() => {
+                  const { taxLine, regLine, shipLine } = getEstimate();
+                  return (
+                    <div className="border-t border-gray-200 pt-5">
+                      <div className="flex items-center gap-1.5 mb-3">
+                        <span className="text-xs font-bold text-purple-600 uppercase tracking-wider">Sample Estimate</span>
+                        <span className="text-xs text-gray-400">· For illustration only</span>
+                      </div>
+
+                      <div className="bg-gray-50 rounded-xl p-4 space-y-3">
+                        {/* Subtotal */}
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-600">Vehicle subtotal</span>
+                          <span className="font-semibold text-curb-navy">$20,270</span>
+                        </div>
+
+                        {/* Tax */}
+                        <div>
+                          <div className="flex justify-between text-sm">
+                            <span className="text-gray-600">{taxLine.label}</span>
+                            <span className="font-semibold text-curb-navy">{taxLine.value}</span>
+                          </div>
+                          {taxLine.note && <p className="text-xs text-gray-400 mt-0.5">{taxLine.note}</p>}
+                        </div>
+
+                        {/* Title & reg */}
+                        <div>
+                          <div className="flex justify-between text-sm">
+                            <span className="text-gray-600">{regLine.label}</span>
+                            <span className="font-semibold text-curb-navy">{regLine.value}</span>
+                          </div>
+                          {regLine.note && <p className="text-xs text-gray-400 mt-0.5">{regLine.note}</p>}
+                        </div>
+
+                        {/* Shipping */}
+                        {shipLine && (
+                          <div>
+                            <div className="flex justify-between text-sm">
+                              <span className="text-gray-600">{shipLine.label}</span>
+                              <span className="font-semibold text-curb-navy">{shipLine.value}</span>
+                            </div>
+                            {shipLine.note && <p className="text-xs text-gray-400 mt-0.5">{shipLine.note}</p>}
+                          </div>
+                        )}
+
+                        {/* Divider + note */}
+                        <div className="border-t border-gray-200 pt-3">
+                          <p className="text-xs text-gray-500 leading-relaxed">
+                            {estDelivery === 'ship' && !isCaliforniaZip(estDestZip) && (
+                              <span className="block mb-2 text-blue-600 font-medium">For qualifying deliveries outside California, California sales tax generally doesn&apos;t apply. You may still owe taxes and registration fees in the state where you register the vehicle.</span>
+                            )}
+                            <span className="font-semibold text-curb-navy">At checkout:</span> The selling dealer will confirm the taxable amount, applicable fees, and delivery terms before presenting the final purchase total.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
 
               {/* What happens after you win */}
@@ -308,24 +525,24 @@ export default function ExampleAuctionPage() {
                     <span className="font-semibold text-curb-navy">$18,500</span>
                   </div>
                   <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">Required repairs</span>
+                    <span className="font-semibold text-curb-navy">$1,215</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
                     <span className="text-gray-600">Buyer premium (3%)</span>
                     <span className="font-semibold text-curb-navy">$555</span>
                   </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Repairs</span>
-                    <span className="font-semibold text-green-600">Included</span>
-                  </div>
                   <div className="border-t border-gray-200 pt-2.5 flex justify-between">
                     <span className="font-bold text-curb-navy">Subtotal</span>
-                    <span className="font-bold text-curb-navy text-lg">$19,055</span>
+                    <span className="font-bold text-curb-navy text-lg">$20,270</span>
                   </div>
-                  <p className="text-xs text-gray-400">+ taxes, registration & any other applicable charges</p>
+                  <p className="text-xs text-gray-400">Before taxes, registration & shipping</p>
                 </div>
 
                 {/* Savings callout */}
                 <div className="bg-green-50 border border-green-200 rounded-xl p-4 mb-5 text-center">
                   <p className="text-xs text-green-600 font-semibold uppercase tracking-wider mb-1">Your Savings vs. Retail</p>
-                  <p className="text-3xl font-bold text-green-600">$4,945</p>
+                  <p className="text-3xl font-bold text-green-600">$3,730</p>
                   <p className="text-xs text-green-600 mt-1">Retail value: <span className="line-through">$24,000</span></p>
                 </div>
 
